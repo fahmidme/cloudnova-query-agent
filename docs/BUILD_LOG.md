@@ -169,3 +169,13 @@ columns/rows, checked all relative documentation links, parsed all SVG assets, a
 reviewed the local rendering. Application code is unchanged; runtime test counts and
 live evidence refer to the previous recorded verification. This documentation polish
 is additional work outside the earlier implementation time checkpoints.
+
+
+**Owner visual feedback and correction:** the first SVG stretched text through fixed
+`textLength` sizing. Removed forced widths and switched to natural monospace text
+with colored spans, preserving spaces without distorting glyphs. Trimmed irrelevant
+trailing spaces from the plain-text export. Inspected the corrected preview in the
+published GitHub README: normal glyph proportions and aligned table columns. Also
+verified the four badge images, both rendered Mermaid diagrams, quick-start layout,
+and collapsed command section on GitHub. The local preview browser URL was blocked;
+GitHub verification used the explicitly authorized public README after publication.

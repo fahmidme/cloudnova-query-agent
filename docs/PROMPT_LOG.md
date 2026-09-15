@@ -51,3 +51,6 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
 
 17. **User direction (summary):** Make the README more useful and polished, with GitHub badges, separate application and agent architecture diagrams, and examples showing CLI color; keep it approachable.
     **Assistant implementation (summary):** Added a focused landing page, linked reviewer guide, self-contained badges, and a reproducible colored CLI preview using recorded sample wording and locally recomputed SQL evidence. Kept verification limitations and time accounting visible; no application behavior or provider calls changed.
+
+18. **User feedback (summary):** The CLI image looked artificial, with stretched text.
+    **Assistant correction:** Removed fixed SVG text widths, used natural monospace metrics and colored spans, and visually checked the corrected public GitHub rendering.
