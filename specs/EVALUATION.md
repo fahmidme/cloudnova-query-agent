@@ -47,3 +47,7 @@ Fixture has 11 records, 9 invoice IDs; 8 accepted invoices, 1 equivalent copy co
 Question: "What was our Enterprise churn rate during February 2024?"
 
 Expected behavior: state that period churn cannot be established from invoice snapshots without churn event dates and opening cohort membership. Do not substitute current/snapshot churn. Show this explicitly as an expected unsupported case in the offline demo; test a mocked unsupported plan. Live model recognition of this limit must be verified separately if a key is supplied.
+
+## Optional live harness — specified before implementation
+
+`python -m app evaluate --live [--provider openai|anthropic]` makes seven sequential provider calls over the original fixture: the six stakeholder query cases above plus period churn. Assert the independently specified answer rows, requested column contract, deterministic ordering, and explicit unsupported status. Record SQL, result, timing, and pass/fail per case. A provider error must remain a failure; stop subsequent calls after a provider failure to avoid repeated billing/authentication failures. This is a small regression set, not an accuracy benchmark. Without `--live`, evaluate curated SQL offline and mark natural-language unsupported recognition as untested.
