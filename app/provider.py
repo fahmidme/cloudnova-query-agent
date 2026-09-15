@@ -1,4 +1,4 @@
-"""One provider call produces SQL; local SQLite computes the answer."""
+"""Structured provider requests and bounded transport; SQLite computes the figures."""
 
 import json
 import time
@@ -75,9 +75,9 @@ def build_request(question: str, as_of: str, config: ProviderConfig) -> dict:
             "max_output_tokens": 2000}
 
 
-def parse_response(response: dict) -> dict:
+def parse_openai_json(response: dict) -> dict:
     if not isinstance(response, dict) or response.get("status") != "completed":
-        raise ProviderError("OpenAI returned an incomplete or failed response; no query ran")
+        raise ProviderError("OpenAI returned an incomplete or failed response; no output accepted")
     output = response.get("output")
     if not isinstance(output, list) or any(not isinstance(item, dict) for item in output):
         raise ProviderError("OpenAI returned an invalid output structure")
@@ -88,7 +88,7 @@ def parse_response(response: dict) -> dict:
     if not isinstance(content, list) or any(not isinstance(item, dict) for item in content):
         raise ProviderError("OpenAI returned invalid message content")
     if any(item.get("type") == "refusal" for item in content):
-        raise ProviderError("OpenAI refused the request; no query ran")
+        raise ProviderError("OpenAI refused the request; no output accepted")
     text = [item.get("text") for item in content if item.get("type") == "output_text"]
     if len(text) != 1 or not isinstance(text[0], str):
         raise ProviderError("OpenAI did not return one structured query plan")
@@ -96,7 +96,11 @@ def parse_response(response: dict) -> dict:
         plan = json.loads(text[0])
     except (ValueError, TypeError):
         raise ProviderError("OpenAI returned invalid JSON") from None
-    return validate_plan(plan)
+    return plan
+
+
+def parse_response(response: dict) -> dict:
+    return validate_plan(parse_openai_json(response))
 
 
 def validate_plan(plan: dict) -> dict:
@@ -122,31 +126,40 @@ def build_anthropic_request(question: str, as_of: str, config: ProviderConfig) -
             "tool_choice": {"type": "tool", "name": "query_plan", "disable_parallel_tool_use": True}}
 
 
-def parse_anthropic_response(response: dict) -> dict:
+def parse_anthropic_tool(response: dict, name: str) -> dict:
     if not isinstance(response, dict) or response.get("stop_reason") != "tool_use":
-        raise ProviderError("Claude did not finish a tool plan; no query ran")
+        raise ProviderError("Claude did not finish a tool result; no output accepted")
     content = response.get("content")
     if not isinstance(content, list) or any(not isinstance(item, dict) for item in content):
         raise ProviderError("Claude returned invalid message content")
     plans = [item for item in content if item.get("type") == "tool_use"]
-    if len(plans) != 1 or plans[0].get("name") != "query_plan":
-        raise ProviderError("expected exactly one query_plan tool result")
-    return validate_plan(plans[0].get("input"))
+    if len(plans) != 1 or plans[0].get("name") != name:
+        raise ProviderError(f"expected exactly one {name} tool result")
+    return plans[0].get("input")
+
+
+def parse_anthropic_response(response: dict) -> dict:
+    return validate_plan(parse_anthropic_tool(response, "query_plan"))
 
 
 def generate_plan(question: str, as_of: str, config: ProviderConfig) -> dict:
+    payload = (build_anthropic_request(question, as_of, config) if config.provider == "anthropic"
+               else build_request(question, as_of, config))
+    parse = parse_anthropic_response if config.provider == "anthropic" else parse_response
+    plan, elapsed = request_payload(payload, config, parse)
+    return {**plan, "provider_elapsed_ms": elapsed, "model": config.model, "provider": config.provider}
+
+
+def request_payload(payload: dict, config: ProviderConfig, parse) -> tuple[dict, float]:
+    """Shared transport for query plans and answer synthesis, with no retries."""
     if config.provider == "anthropic":
         endpoint = "https://api.anthropic.com/v1/messages"
-        payload = build_anthropic_request(question, as_of, config)
         headers = {"x-api-key": config.api_key, "anthropic-version": "2023-06-01"}
-        parse = parse_anthropic_response
     else:
-        endpoint, payload = ENDPOINT, build_request(question, as_of, config)
+        endpoint = ENDPOINT
         if config.model == "gpt-5.6-luna":
-            # Bounded SQL plans do not need an additional hidden reasoning budget.
             payload["reasoning"] = {"effort": "none"}
         headers = {"Authorization": f"Bearer {config.api_key}"}
-        parse = parse_response
     request = Request(endpoint, data=json.dumps(payload).encode(),
                       headers={**headers, "Content-Type": "application/json"}, method="POST")
     started = time.monotonic()
@@ -155,12 +168,13 @@ def generate_plan(question: str, as_of: str, config: ProviderConfig) -> dict:
             data = response.read(1_000_001)
             if len(data) > 1_000_000:
                 raise ProviderError("Provider response exceeded the size limit")
-            plan = parse(json.loads(data))
+            result = parse(json.loads(data))
     except HTTPError as exc:
-        raise ProviderError(f"{config.provider} HTTP {exc.code}; check key/model access or rate limits. No automatic retry.") from None
+        code = exc.code
+        exc.close()
+        raise ProviderError(f"{config.provider} HTTP {code}; check key/model access or rate limits. No automatic retry.") from None
     except (URLError, TimeoutError, OSError):
         raise ProviderError("Provider connection failed or timed out. Completion/usage may be uncertain; no automatic retry.") from None
     except (json.JSONDecodeError, UnicodeDecodeError):
         raise ProviderError("Provider returned an unreadable response") from None
-    return {**plan, "provider_elapsed_ms": round((time.monotonic() - started) * 1000, 2),
-            "model": config.model, "provider": config.provider}
+    return result, round((time.monotonic() - started) * 1000, 2)

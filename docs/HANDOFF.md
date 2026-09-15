@@ -16,21 +16,25 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - `app/query.py`: SQLite authorizer, restricted columns/functions, resource limits.
 - `app/provider_options.py`: dated affordable defaults, pricing references, and numbered API-key onboarding links.
 - `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
-- `app/service.py`: shared natural-language question orchestration.
+- `app/service.py`: question validation, planning, execution, and optional answer synthesis.
+- `app/guardrails.py`: basic malicious-input prefilter; SQL authorization remains the enforcement boundary.
+- `app/summary.py`: bounded result-to-model answer synthesis, with computed results preserved on failure.
+- `app/presentation.py`: wrapped prose, readable currency/headers, multiline SQL, and safe terminal rendering.
 - `app/__main__.py`, `app/guided.py`: JSON commands and terminal journey.
 - `app/terminal.py`: dependency-free semantic colors with TTY, `NO_COLOR`, and terminal-support checks; table widths are calculated before styling.
 - `app/evaluate.py`, `tests/`: independent expected answers and contract/safety tests.
 
 ## Verification evidence
 
-- 32 offline tests pass on Python 3.12.14 and 3.14.2.
+- 38 offline tests pass on Python 3.12.14 and 3.14.2.
 - Six curated SQL answer cases match the independently committed fixture specification.
 - A real terminal check selected Claude and entered a synthetic key without echoing it; no API call was made.
 - Supplied ledger imported locally: 5,125 records, 5,000 invoice groups, 4,984 accepted invoices, 109 equivalent copies collapsed, 16 quarantined groups, 3,803 account snapshots.
 - Supplied-data flags: 1,171 date inferences, 142 invalid emails, 1,603 price/FX mismatches, 980 uncertain account snapshots. Counts are issue events, not all distinct affected invoices.
 - Two excluded groups have contradictory sign/status and unknown financial bounds; do not present a complete total revenue range for this ledger.
 - The source copy fetched for local analysis was newline-normalized. The database hashes the actual local input bytes; do not call that hash a verification of the original Drive file bytes.
-- Live OpenAI/Claude behavior remains unverified until credentials are configured and actual calls are made. Mocked contract checks do not establish model accuracy.
+- Owner-provided screenshot shows a successful live GPT-5.6 Luna region/MRR question on the fixture. New answer synthesis, Claude live behavior, and the full live regression set remain unverified. Mocked contract checks do not establish model accuracy.
+- Answered questions now send SQL result rows and coverage to the selected provider for a second call by default; `/summary` or `ask --no-summary` disables this. No raw audit records or contact column are sent. The seven-call SQL eval disables synthesis.
 - Fresh public clone of `917a68b`: guided journey, 32 tests, six answer checks, demo, and quarantine inspection passed in an empty Python 3.12.14 venv. Generated artifacts left Git clean. See BUILD_LOG for timing and exact scope.
 
 ## Business questions still awaiting clarification

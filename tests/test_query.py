@@ -60,7 +60,7 @@ class QueryTests(unittest.TestCase):
     def test_mocked_question_executes_and_unsupported_does_not(self, generate):
         config = ProviderConfig('fake-test-key', 'test-model')
         generate.return_value = PLAN
-        self.assertEqual(ask('How many invoices?', self.db, config)['rows'], [[8]])
+        self.assertEqual(ask('How many invoices?', self.db, config, include_summary=False)['rows'], [[8]])
         generate.return_value = {'sql': None, 'explanation': 'Cannot calculate period churn.',
                                  'unsupported_reason': 'No churn event dates or opening cohort.'}
         result = ask('Enterprise churn during February 2024?', self.db, config)

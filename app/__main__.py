@@ -35,6 +35,7 @@ def main() -> int:
         command.add_argument("--db", type=Path, default=Path("work/cloudnova.sqlite"))
         if name == "ask":
             command.add_argument("--provider", choices=("openai", "anthropic"))
+            command.add_argument("--no-summary", action="store_true", help="keep results local; skip the second model call")
     args = parser.parse_args()
     try:
         if args.command == "demo":
@@ -48,7 +49,7 @@ def main() -> int:
         elif args.command == "sql":
             result = execute_query(args.db, args.sql)
         else:
-            result = ask(args.question, args.db, load_config(provider=args.provider))
+            result = ask(args.question, args.db, load_config(provider=args.provider), include_summary=not args.no_summary)
         print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
         return 1 if args.command == "evaluate" and not result["passed"] else 0
     except (ValueError, OSError, sqlite3.Error, csv.Error) as exc:

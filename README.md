@@ -24,7 +24,7 @@ The command creates `.venv` and walks you through:
 4. **Run evaluations:** execute the independent offline test suite.
 5. **Ask questions:** choose OpenAI or Claude, press Enter for the selected model (or type another ID), and enter your API key at a hidden terminal prompt. The entered key stays in memory for this session and is not saved.
 
-Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, and `/quit` during the session. `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
+Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, and `/quit` during the session. `/summary` toggles conversational answer synthesis (on by default). `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
 
 The guided terminal uses color for headings, prompts, SQL labels, and status messages. Set `NO_COLOR=1` for plain text. Redirected output and unsupported terminals automatically stay plain; JSON commands are unchanged.
 
@@ -129,10 +129,15 @@ flowchart TD
     PLAN --> Q[query.py: authorizer and resource limits]
     DB --> Q
     Q --> OUT[SQL + local rows + coverage]
+    OUT --> SUM[summary.py: second provider call]
+    SUM --> HUMAN[presentation.py: answer, evidence, SQL]
+    OUT --> HUMAN
     CLI --> E[evaluate.py + tests]
 ```
 
-The provider receives the question, allowed schema, metric rules, and as-of date. It generates a plan; SQLite computes the answer. Invoice data, contacts, and results are not sent back to the provider. Text you include in your question is sent. There is one provider call per question and no second summarization call.
+The first model call receives the question, allowed schema, metric rules, and as-of date. SQLite executes the generated query locally. A second model call receives the executed SQL, result columns/rows, and coverage caveats to write a short conversational answer. Result rows may contain account names or identifiers; raw audit records and the contact-email column are excluded. The terminal leads with the AI summary, then shows formatted local results and readable multiline SQL.
+
+Answered questions use up to **two paid calls**. `/summary` or `ask --no-summary` disables synthesis and keeps result rows local. Unsupported questions use one call. If synthesis fails or exceeds its 32 KB input budget, the computed results remain available. The seven-call live SQL evaluation disables synthesis; its pass/fail results do not assess prose accuracy.
 
 | Start here | Purpose |
 | --- | --- |
@@ -151,11 +156,23 @@ The provider receives the question, allowed schema, metric rules, and as-of date
 - **Revenue:** recorded local amounts × stated FX, rounded per invoice to integer USD cents. Paid, refunded, and net revenue are distinct. Price discrepancies are flagged.
 - **MRR and churn:** one provisional latest-invoice snapshot per account. MRR uses plan price × seats × discount, including annual contracts; churned accounts contribute zero MRR. Regional means include those zero accounts. Churn is a snapshot ratio, not period churn.
 - **Pending clarification:** account identity/latest-invoice precedence and recorded-amount/FX precedence. The implementation labels both policies provisional.
+- **Basic input guard:** rejects obvious instruction overrides, credential requests, destructive commands, and terminal control characters before a paid call. This is a heuristic, not complete prompt-injection prevention. Result cells are untrusted summary evidence; the summary model has no action tools. Terminal output escapes control characters.
 - **SQL hardening:** read-only connections; allowed tables, columns and functions; denied writes, raw/contact access, recursive queries and extensions; bounded SQL work and output. This constrains execution, not semantic correctness. A safe query can still answer the wrong question.
 - **Data and scale:** the full supplied CSV is not in this public repo. Use your local copy. Imports are bounded to 20 MB and store sensitive raw provenance locally. This is a take-home CLI, not a deployed multiuser service.
 
+## Bonus: input and SQL guardrails
+
+The assessment asks for one production-hardening touch. This project's chosen bonus is **guarded input and query execution**, demonstrated by runnable checks:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -p test_query.py -v
+.venv/bin/python -m unittest discover -s tests -p test_answers.py -v
+```
+
+These verify that writes, raw/contact-table reads, unsafe functions, multiple statements, recursive queries, and excessive SQL work are rejected; obvious malicious questions are blocked before a paid call; result-cell instructions stay in the evidence payload; and a failed summary preserves computed results. No API key is needed. The heuristic input filter is only a first check: SQLite's authorizer enforces the actual data-access boundary.
+
 ## Verification and next day
 
-Verified locally: 32 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. Live provider behavior is **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
+Verified locally: 38 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. The owner supplied a screenshot of a successful GPT-5.6 Luna question on the fixture. The new synthesis path and full live-provider regression set are **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
 
 With another day: obtain answers to the two business-policy questions, run and expand live paraphrase/adversarial evaluations across both providers, add CI across operating systems, and strengthen source-format contracts. Add UI/cloud infrastructure only when the delivery context calls for it.

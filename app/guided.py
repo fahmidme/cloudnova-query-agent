@@ -13,6 +13,7 @@ from .config import PROVIDERS, ProviderConfig, read_settings
 from .demo import QUESTIONS, UNSUPPORTED
 from .evaluate import evaluate
 from .pipeline import ingest
+from .presentation import show_answer, prose, safe_text
 from .provider_options import DEFAULT_MODELS, GUIDES
 from .query import execute_query
 from .service import ask
@@ -33,21 +34,6 @@ def heading(title: str):
     print(paint("=" * 64, "muted"))
 
 
-def table(columns: list, rows: list):
-    if not rows:
-        print(paint("No matching rows.", "muted"))
-        return
-    # JSON-escaped control characters keep untrusted data from controlling the terminal.
-    cells = [[json.dumps(value, ensure_ascii=True) if isinstance(value, str)
-              else ("unknown" if value is None else str(value)) for value in row] for row in rows]
-    headers = [json.dumps(str(column), ensure_ascii=True)[1:-1] for column in columns]
-    widths = [max(len(headers[i]), *(len(row[i]) for row in cells)) for i in range(len(headers))]
-    print(paint(" | ".join(value.ljust(width) for value, width in zip(headers, widths)), "heading"))
-    print(paint("-+-".join("-" * width for width in widths), "muted"))
-    for row in cells:
-        print(" | ".join(value.ljust(width) for value, width in zip(row, widths)))
-
-
 def quality(report: dict):
     heading("2 / Data quality and coverage")
     print(f"{report['source_records']:,} source records -> {report['accepted_invoices']:,} accepted invoices"
@@ -64,18 +50,6 @@ def quality(report: dict):
         print(paint("Flags: " + ", ".join(f"{code}={count}" for code, count in report['warning_counts'].items()), "warning"))
     for policy in report['provisional_policies']:
         print(paint(f"  * {policy}", "warning"))
-
-
-def show_answer(result: dict):
-    if result.get('status') == 'unsupported':
-        print(paint("Unsupported: ", "warning") + json.dumps(result['unsupported_reason'], ensure_ascii=True))
-        return
-    if result.get('explanation'):
-        print(paint("Model interpretation: ", "muted") + json.dumps(result['explanation'], ensure_ascii=True))
-    print(paint("SQL: ", "sql") + json.dumps(result['sql'], ensure_ascii=True))
-    table(result['columns'], result['rows'])
-    if 'provider_elapsed_ms' in result:
-        print(paint(f"Model: {result['provider_elapsed_ms']:,.0f} ms | SQLite: {result['query_elapsed_ms']:,.2f} ms", "muted"))
 
 
 def configure_provider() -> ProviderConfig | None:
@@ -118,8 +92,8 @@ def configure_provider() -> ProviderConfig | None:
             except getpass.GetPassWarning:
                 raise ValueError("terminal cannot hide input; configure the key in .env instead") from None
     config = ProviderConfig(key, model, provider)
-    print(paint("Ready.", "success") + " Each question makes one paid API request; no automatic retries.")
-    print("Only your question, schema, metric rules and as-of date go to the provider.")
+    prose("Ready. Answered questions use up to two paid API calls: SQL planning and answer summary. No automatic retries.", "success")
+    prose("The summary call sends SQL result rows (including any names/IDs), SQL, and coverage to your chosen provider. Use /summary to turn it off.")
     return config
 
 
@@ -150,13 +124,15 @@ def main() -> int:
         heading("5 / Ask your own questions")
         print("Choose a provider now, or keep exploring the curated SQL offline.")
         config = None
+        include_summary = True
         while True:
             try:
                 config = configure_provider()
                 break
             except ValueError as exc:
-                print(paint(f"Configuration: {exc}", "warning"))
-        print("\nCommands: /examples, /quality, /inspect INVOICE_ID, /provider, /evaluate, /quit")
+                prose(f"Configuration: {exc}", "warning")
+        print()
+        prose("Commands: /examples, /quality, /inspect INVOICE_ID, /provider, /summary, /evaluate, /quit")
         print("Try: Which region has the highest average MRR per account?")
         while True:
             question = prompt("Ask or enter a command", "/quit")
@@ -165,6 +141,9 @@ def main() -> int:
                     break
                 if question == '/provider':
                     config = configure_provider()
+                elif question == '/summary':
+                    include_summary = not include_summary
+                    print('AI summaries ' + ('on: result rows are sent to the provider.' if include_summary else 'off: result rows stay local.'))
                 elif question == '/quality':
                     quality(report)
                 elif question.startswith('/inspect '):
@@ -186,11 +165,10 @@ def main() -> int:
                 elif config is None:
                     print("Use /provider to enable natural-language questions, or /examples for offline SQL.")
                 else:
-                    print("Generating SQL, then checking and executing it locally...", flush=True)
-                    show_answer(ask(question, database, config))
-                    print(f"Coverage: {report['accepted_invoices']} invoices; {report['quarantined_invoice_groups']} groups excluded. /quality for caveats.")
+                    print("Planning and running SQL, then preparing your answer...", flush=True)
+                    show_answer(ask(question, database, config, include_summary=include_summary))
             except (ValueError, OSError, sqlite3.Error) as exc:
-                print(paint(f"Could not complete this action: {exc}", "error"))
+                prose(f"Could not complete this action: {exc}", "error")
         print("\n" + paint("Session complete.", "success") + " Local audit database: work/reviewer.sqlite")
         print("Next: README.md for commands; docs/HANDOFF.md for design and remaining work.")
         return 0
@@ -198,7 +176,7 @@ def main() -> int:
         print("\nSession ended. No entered API key was saved.")
         return 0
     except (ValueError, OSError, sqlite3.Error, csv.Error) as exc:
-        print(paint(f"Could not start the tour: {exc}", "error", sys.stderr), file=sys.stderr)
+        print(paint(safe_text(f"Could not start the tour: {exc}"), "error", sys.stderr), file=sys.stderr)
         return 2
 
 

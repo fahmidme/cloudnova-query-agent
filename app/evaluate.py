@@ -35,7 +35,7 @@ def evaluate(config: ProviderConfig | None = None) -> dict:
             if 'csat_flag' in columns:
                 request += " Sort by net revenue descending then account_id ascending. CSAT flags: low, not_low, unknown."
             try:
-                answer = ask(request, database, config) if config else execute_query(database, sql)
+                answer = ask(request, database, config, include_summary=False) if config else execute_query(database, sql)
                 passed = answer.get('columns') == columns and answer.get('rows') == expected
                 results.append({'question': request, 'passed': passed, 'expected_rows': expected, 'answer': answer})
             except ProviderError as exc:
@@ -45,7 +45,7 @@ def evaluate(config: ProviderConfig | None = None) -> dict:
                 results.append({'question': request, 'passed': False, 'error': str(exc)})
         if config:
             try:
-                answer = ask(UNSUPPORTED['question'], database, config)
+                answer = ask(UNSUPPORTED['question'], database, config, include_summary=False)
                 results.append({'question': UNSUPPORTED['question'], 'passed': answer.get('status') == 'unsupported', 'answer': answer})
             except (ValueError, OSError) as exc:
                 results.append({'question': UNSUPPORTED['question'], 'passed': False, 'error': str(exc)})
