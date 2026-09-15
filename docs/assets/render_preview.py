@@ -51,10 +51,10 @@ def main():
         show_answer(result)
         prose('Use /quality for exclusions, /clear for a fresh conversation.', 'muted')
     colored = output.getvalue().rstrip()
-    plain = ANSI.sub('', colored)
+    plain = '\n'.join(line.rstrip() for line in ANSI.sub('', colored).splitlines())
     (ASSETS / 'cli-preview.txt').write_text(plain + '\n')
     lines = colored.splitlines()
-    line_height, top, margin, glyph = 25, 106, 34, 10
+    line_height, top, margin = 25, 106, 34
     width, height = 1000, top + len(lines) * line_height + 22
     svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
            '<title id="title">CloudNova CLI: a contextual MRR answer with SQL evidence</title>',
@@ -66,18 +66,20 @@ def main():
            '<text x="966" y="39" text-anchor="end" fill="#99a7bc" font-family="monospace" font-size="13">ORIGINAL SAMPLE</text>',
            '<g font-family="Menlo,DejaVu Sans Mono,Consolas,monospace" font-size="16" xml:space="preserve">']
     for number, line in enumerate(lines):
-        color, bold, column, start = '#dce5f2', False, 0, 0
+        color, bold, start = '#dce5f2', False, 0
+        # Natural font metrics preserve the terminal's monospace grid. Never stretch
+        # text to an estimated character width; browsers and fonts differ.
+        spans = []
         for match in list(ANSI.finditer(line)) + [None]:
             end = match.start() if match else len(line)
             segment = line[start:end]
             if segment:
-                length = len(segment) * glyph
-                svg.append(f'<text x="{margin+column*glyph}" y="{top+number*line_height}" fill="{color}" font-weight="{600 if bold else 400}" textLength="{length}" lengthAdjust="spacingAndGlyphs">{escape(segment.replace(chr(32), chr(160)))}</text>')
-                column += len(segment)
+                spans.append(f'<tspan fill="{color}" font-weight="{600 if bold else 400}">{escape(segment.replace(chr(32), chr(160)))}</tspan>')
             if match:
                 code = match.group(1)
                 color, bold = COLORS.get(code, '#dce5f2'), code.startswith('1;')
                 start = match.end()
+        svg.append(f'<text x="{margin}" y="{top+number*line_height}">' + ''.join(spans) + '</text>')
     svg += ['</g>', '</svg>']
     (ASSETS / 'cli-preview.svg').write_text('\n'.join(svg) + '\n')
     print('Rendered docs/assets/cli-preview.svg and cli-preview.txt from verified fixture results.')

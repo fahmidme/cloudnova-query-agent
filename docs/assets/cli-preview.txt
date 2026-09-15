@@ -8,10 +8,10 @@ AI explanation of the computed results below.
 Computed results
 Region | Average MRR USD | Account Count
 -------+-----------------+--------------
-EMEA   | $99.00          | 2            
+EMEA   | $99.00          | 2
 
 SQL used
-  SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS 
+  SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS
     account_count FROM accounts WHERE region = 'EMEA' GROUP BY region
 
 As of 2024-03-15 · 6 modeled accounts · 8 accepted invoices · 1 excluded invoice group.

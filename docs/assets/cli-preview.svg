@@ -7,21 +7,25 @@
 <text x="93" y="39" fill="#dce5f2" font-family="monospace" font-size="16">CloudNova / reviewer session</text>
 <text x="966" y="39" text-anchor="end" fill="#99a7bc" font-family="monospace" font-size="13">ORIGINAL SAMPLE</text>
 <g font-family="Menlo,DejaVu Sans Mono,Consolas,monospace" font-size="16" xml:space="preserve">
-<text x="34" y="106" fill="#82aaff" font-weight="600" textLength="220" lengthAdjust="spacingAndGlyphs">Ask or enter a command</text>
-<text x="254" y="106" fill="#dce5f2" font-weight="400" textLength="180" lengthAdjust="spacingAndGlyphs">: What about EMEA?</text>
-<text x="34" y="156" fill="#71d5e8" font-weight="600" textLength="60" lengthAdjust="spacingAndGlyphs">Answer</text>
-<text x="34" y="181" fill="#dce5f2" font-weight="400" textLength="850" lengthAdjust="spacingAndGlyphs">EMEA’s average MRR is $99.00 per account, based on 2 modeled accounts as of March 15,</text>
-<text x="34" y="206" fill="#dce5f2" font-weight="400" textLength="510" lengthAdjust="spacingAndGlyphs">2024. This includes churned accounts with zero MRR.</text>
-<text x="34" y="231" fill="#99a7bc" font-weight="400" textLength="450" lengthAdjust="spacingAndGlyphs">AI explanation of the computed results below.</text>
-<text x="34" y="281" fill="#71d5e8" font-weight="600" textLength="160" lengthAdjust="spacingAndGlyphs">Computed results</text>
-<text x="34" y="306" fill="#71d5e8" font-weight="600" textLength="400" lengthAdjust="spacingAndGlyphs">Region | Average MRR USD | Account Count</text>
-<text x="34" y="331" fill="#99a7bc" font-weight="400" textLength="400" lengthAdjust="spacingAndGlyphs">-------+-----------------+--------------</text>
-<text x="34" y="356" fill="#dce5f2" font-weight="400" textLength="400" lengthAdjust="spacingAndGlyphs">EMEA   | $99.00          | 2            </text>
-<text x="34" y="406" fill="#d6a0ef" font-weight="600" textLength="80" lengthAdjust="spacingAndGlyphs">SQL used</text>
-<text x="34" y="431" fill="#dce5f2" font-weight="400" textLength="760" lengthAdjust="spacingAndGlyphs">  SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS </text>
-<text x="34" y="456" fill="#dce5f2" font-weight="400" textLength="690" lengthAdjust="spacingAndGlyphs">    account_count FROM accounts WHERE region = &#x27;EMEA&#x27; GROUP BY region</text>
-<text x="34" y="506" fill="#99a7bc" font-weight="400" textLength="870" lengthAdjust="spacingAndGlyphs">As of 2024-03-15 · 6 modeled accounts · 8 accepted invoices · 1 excluded invoice group.</text>
-<text x="34" y="531" fill="#dce5f2" font-weight="400" textLength="260" lengthAdjust="spacingAndGlyphs">/quality for full caveats.</text>
-<text x="34" y="581" fill="#99a7bc" font-weight="400" textLength="610" lengthAdjust="spacingAndGlyphs">Use /quality for exclusions, /clear for a fresh conversation.</text>
+<text x="34" y="106"><tspan fill="#82aaff" font-weight="600">Ask or enter a command</tspan><tspan fill="#dce5f2" font-weight="400">: What about EMEA?</tspan></text>
+<text x="34" y="131"></text>
+<text x="34" y="156"><tspan fill="#71d5e8" font-weight="600">Answer</tspan></text>
+<text x="34" y="181"><tspan fill="#dce5f2" font-weight="400">EMEA’s average MRR is $99.00 per account, based on 2 modeled accounts as of March 15,</tspan></text>
+<text x="34" y="206"><tspan fill="#dce5f2" font-weight="400">2024. This includes churned accounts with zero MRR.</tspan></text>
+<text x="34" y="231"><tspan fill="#99a7bc" font-weight="400">AI explanation of the computed results below.</tspan></text>
+<text x="34" y="256"></text>
+<text x="34" y="281"><tspan fill="#71d5e8" font-weight="600">Computed results</tspan></text>
+<text x="34" y="306"><tspan fill="#71d5e8" font-weight="600">Region | Average MRR USD | Account Count</tspan></text>
+<text x="34" y="331"><tspan fill="#99a7bc" font-weight="400">-------+-----------------+--------------</tspan></text>
+<text x="34" y="356"><tspan fill="#dce5f2" font-weight="400">EMEA   | $99.00          | 2            </tspan></text>
+<text x="34" y="381"></text>
+<text x="34" y="406"><tspan fill="#d6a0ef" font-weight="600">SQL used</tspan></text>
+<text x="34" y="431"><tspan fill="#dce5f2" font-weight="400">  SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS </tspan></text>
+<text x="34" y="456"><tspan fill="#dce5f2" font-weight="400">    account_count FROM accounts WHERE region = &#x27;EMEA&#x27; GROUP BY region</tspan></text>
+<text x="34" y="481"></text>
+<text x="34" y="506"><tspan fill="#99a7bc" font-weight="400">As of 2024-03-15 · 6 modeled accounts · 8 accepted invoices · 1 excluded invoice group.</tspan></text>
+<text x="34" y="531"><tspan fill="#dce5f2" font-weight="400">/quality for full caveats.</tspan></text>
+<text x="34" y="556"></text>
+<text x="34" y="581"><tspan fill="#99a7bc" font-weight="400">Use /quality for exclusions, /clear for a fresh conversation.</tspan></text>
 </g>
 </svg>
