@@ -22,9 +22,9 @@ The command creates `.venv` and walks you through:
 2. **Review quality:** see accepted records, duplicate handling, quarantined invoice groups, financial uncertainty, and provisional policies.
 3. **Inspect an answer:** view a curated SQL example and its computed result.
 4. **Run evaluations:** execute the independent offline test suite.
-5. **Ask questions:** choose OpenAI or Claude, press Enter for the selected model (or type another ID), and enter your API key at a hidden terminal prompt. The entered key stays in memory for this session and is not saved.
+5. **Ask questions:** choose OpenAI or Claude, press Enter for the selected model (or type another ID), and enter your API key at a hidden terminal prompt. Newly entered keys are saved in the OS credential store and reused automatically on later runs.
 
-Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, and `/quit` during the session. `/summary` toggles conversational answer synthesis (on by default). `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
+Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, `/key`, `/forget`, and `/quit` during the session. `/summary` toggles conversational answer synthesis (on by default). `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
 
 The guided terminal uses color for headings, prompts, SQL labels, and status messages. Set `NO_COLOR=1` for plain text. Redirected output and unsupported terminals automatically stay plain; JSON commands are unchanged.
 
@@ -68,7 +68,18 @@ See the [official OpenAI quickstart](https://developers.openai.com/api/docs/quic
 3. Open [Settings → API keys](https://platform.claude.com/settings/keys). Choose **Create key**, name it **CloudNova review**, link your own account, and scope it to **one workspace**. This prototype does not supply the extra header needed by multi-workspace keys.
 4. Copy the key when it is shown at creation. Return to the CLI, choose **2 Claude**, press Enter for **claude-haiku-4-5-20251001**, and paste the key at the hidden prompt.
 
-See [Claude's official key-creation guide](https://platform.claude.com/docs/en/get-api-key). If you cannot create a key or enable billing, ask your organization administrator. API billing is separate from chat subscriptions; this CLI never buys credits or saves an entered key automatically.
+See [Claude's official key-creation guide](https://platform.claude.com/docs/en/get-api-key). If you cannot create a key or enable billing, ask your organization administrator. API billing is separate from chat subscriptions; this CLI never buys credits. Entered keys use the secure storage described below.
+
+### Secure key persistence
+
+Enter a provider key once; subsequent runs reuse it without another key prompt. The selected model is saved with it. Keys are stored under the OS account in **macOS Keychain**, **Windows Credential Manager**, or **Linux Secret Service** through an available `secret-tool`. No extra Python package is required. Linux needs an unlocked Secret Service and the `secret-tool` utility for persistence; without them the key remains session-only, with a visible notice. OS unlock/access dialogs may still appear.
+
+- `/key`: replace the active provider's saved key.
+- `/forget`: remove its saved vault entry and clear the active session key.
+- Explicit environment/`.env` credentials take precedence; these commands do not modify those sources.
+- Secrets never go into command-line arguments, generated artifacts, or project files. There is no plaintext persistence fallback.
+
+macOS vault write/read/update/delete was verified with a temporary synthetic entry, which was removed afterward. Windows and Linux backends are implemented but not verified on those platforms. Keys entered in an older session-only version must be entered once in this version; earlier sessions did not save them.
 
 ## Scriptable commands
 
@@ -173,6 +184,6 @@ These verify that writes, raw/contact-table reads, unsafe functions, multiple st
 
 ## Verification and next day
 
-Verified locally: 38 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. The owner supplied a screenshot of a successful GPT-5.6 Luna question on the fixture. The new synthesis path and full live-provider regression set are **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
+Verified locally: 43 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. The owner supplied a screenshot of a successful GPT-5.6 Luna question on the fixture. The new synthesis path and full live-provider regression set are **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
 
 With another day: obtain answers to the two business-policy questions, run and expand live paraphrase/adversarial evaluations across both providers, add CI across operating systems, and strengthen source-format contracts. Add UI/cloud infrastructure only when the delivery context calls for it.

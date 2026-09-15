@@ -1,10 +1,11 @@
-"""Provider settings from inert dotenv values or session-only guided input."""
+"""Explicit settings override OS-protected saved provider credentials."""
 
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .provider_options import DEFAULT_MODELS
+from .credentials import load_saved
 
 PROVIDERS = {"openai": "OPENAI", "anthropic": "ANTHROPIC"}
 
@@ -53,5 +54,9 @@ def load_config(env_file: Path = Path(".env"), provider: str | None = None) -> P
     if provider not in PROVIDERS:
         raise ValueError("LLM_PROVIDER must be openai or anthropic")
     prefix = PROVIDERS[provider]
-    return ProviderConfig(values.get(f"{prefix}_API_KEY", "").strip(),
-                          values.get(f"{prefix}_MODEL", "").strip() or DEFAULT_MODELS[provider], provider)
+    key = values.get(f"{prefix}_API_KEY", "").strip()
+    saved = load_saved(provider) if not key or key == "your-api-key" else None
+    if saved:
+        key = saved['api_key']
+    model = values.get(f"{prefix}_MODEL", "").strip() or (saved or {}).get('model') or DEFAULT_MODELS[provider]
+    return ProviderConfig(key, model, provider)

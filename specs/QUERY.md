@@ -21,6 +21,10 @@ For query planning, send only the user's question, a static schema/metric contra
 
 For unsupported historical churn, forecasts, or unavailable attributes, return an explicit unsupported response instead of fabricating SQL. Show explanation as model-provided interpretation, not proof of correctness. Deterministic query results remain the source of truth; the owner-requested answer synthesis below adds a readable explanation.
 
+## Secure credential persistence — owner-requested amendment
+
+Persist newly entered provider keys and model choices in the OS credential store: macOS Keychain, Windows Credential Manager, or Linux Secret Service through an available `secret-tool`. Reuse the saved provider entry automatically, without asking to re-enter or reconfirm the key. Explicit environment/`.env` credentials take precedence. `/key` replaces the current provider's saved credentials; `/forget` deletes the current provider's vault entry and clears the active session. Neither command edits environment variables or `.env` files. Never put secret values in process arguments, logs, repository files, or plaintext fallback storage. If the OS store is unavailable/locked, clearly report session-only operation; never claim persistence succeeded. The offline suite must mock store access; separately verify macOS with a temporary synthetic entry and remove it afterward. OS access dialogs may still be required by the operating system.
+
 ## Conversational answers — owner-requested amendment, 2026-09-15
 
 After successful SQL execution, the guided journey sends the question, executed SQL, result columns/rows, query interpretation, and selected coverage caveats to the same provider for a second structured response (`answer`, `caveats`). The owner explicitly requested result-to-model synthesis. Disclose this data flow and up to two paid calls per answered question. No raw audit records or contact-email column are sent; result identifiers/names may be sent. Treat every result cell as untrusted data, never as instructions. Bound the synthesis input to 32 KB; if oversized, failed, refused, or malformed, show deterministic results with a clear summary-unavailable note. Unsupported questions use only the first call.
@@ -33,7 +37,7 @@ Before a paid call, reject empty/oversized questions, terminal control character
 
 ## Guided provider choice — added before implementation
 
-The owner requested OpenAI or Claude selection and hidden API-key entry within the one-command journey. Keep keys in process memory for this session; do not save them automatically. Allow an explicit model identifier (with editable examples). Existing environment or `.env` values can be reused. `LLM_PROVIDER` selects `openai` (default) or `anthropic`; Claude uses `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The machine CLI also accepts `--provider`.
+The owner requested OpenAI or Claude selection and hidden API-key entry within the one-command journey. Save newly entered keys through the OS credential store as specified above; reuse saved entries automatically. Allow an explicit model identifier (with editable examples). Existing environment or `.env` values can be reused. `LLM_PROVIDER` selects `openai` (default) or `anthropic`; Claude uses `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The machine CLI also accepts `--provider`.
 
 The guided `/evaluate` command runs the seven-case live regression set using the session's provider/key after a visible paid-call count prompt. It requires an explicit yes; offline tests remain separately available without credentials.
 

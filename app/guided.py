@@ -10,6 +10,7 @@ import sys
 import warnings
 
 from .config import PROVIDERS, ProviderConfig, read_settings
+from .credentials import CredentialStoreError, load_saved, save_credentials, forget_credentials
 from .demo import QUESTIONS, UNSUPPORTED
 from .evaluate import evaluate
 from .pipeline import ingest
@@ -52,35 +53,45 @@ def quality(report: dict):
         print(paint(f"  * {policy}", "warning"))
 
 
-def configure_provider() -> ProviderConfig | None:
+def configure_provider(provider: str | None = None, replace_key: bool = False) -> ProviderConfig | None:
     settings = read_settings()
-    print("\n" + paint("1", "prompt") + " OpenAI   " + paint("2", "prompt") + " Claude (Anthropic)   " + paint("3", "prompt") + " Stay offline")
-    choice = prompt("Provider", "3")
-    if choice in {"3", "offline"}:
-        return None
-    provider = {"1": "openai", "2": "anthropic", "openai": "openai", "claude": "anthropic", "anthropic": "anthropic"}.get(choice.lower())
     if provider is None:
-        raise ValueError("choose 1, 2, or 3")
+        print("\n" + paint("1", "prompt") + " OpenAI   " + paint("2", "prompt") + " Claude (Anthropic)   " + paint("3", "prompt") + " Stay offline")
+        choice = prompt("Provider", "3")
+        if choice in {"3", "offline"}:
+            return None
+        provider = {"1": "openai", "2": "anthropic", "openai": "openai", "claude": "anthropic", "anthropic": "anthropic"}.get(choice.lower())
+        if provider is None:
+            raise ValueError("choose 1, 2, or 3")
     prefix = PROVIDERS[provider]
     guide = GUIDES[provider]
     print(paint(f"Recommended: {guide['name']}", "heading"))
     print(f"Default model pricing, checked 2026-09-15: {guide['price']}")
     print(f"Current rates: {guide['pricing_url']}")
-    print("API key setup (if you already have a key, continue below):")
-    for number, step in enumerate(guide['steps'], 1):
-        print(f"  {number}. {step}")
-    print("API billing is separate from chat subscriptions. Keys entered here are not saved.")
+    key = settings.get(f"{prefix}_API_KEY", "").strip()
+    if key == 'your-api-key' or replace_key:
+        key = ''
+    saved = None
+    if not key:
+        try:
+            saved = load_saved(provider)
+        except CredentialStoreError as exc:
+            prose(str(exc) + '. Session-only entry is available.', 'warning')
+        if saved and not replace_key:
+            key = saved['api_key']
+            prose('Reusing your saved key from the OS credential store.', 'success')
+    else:
+        prose('Using your configured API key (hidden).', 'success')
+    if not key:
+        print("API key setup:")
+        for number, step in enumerate(guide['steps'], 1):
+            print(f"  {number}. {step}")
+        prose('Enter your key once. It will be saved in the OS credential store when available, never in a project file.')
     print("Press Enter for the selected model, or type another model ID you can access.")
     configured_model = settings.get(f"{prefix}_MODEL", "")
-    default_model = DEFAULT_MODELS[provider] if not configured_model or configured_model == "your-model-id" else configured_model
+    default_model = ((saved or {}).get('model') or DEFAULT_MODELS[provider]) if not configured_model or configured_model == "your-model-id" else configured_model
     model = prompt("Model ID", default_model)
-    key = settings.get(f"{prefix}_API_KEY", "")
-    if key == "your-api-key":
-        key = ""
-    if key:
-        print("A configured API key is available (hidden).")
-        if prompt("Use this key? y/n", "y").lower() != 'y':
-            key = ""
+    entered_key = not key
     if not key:
         if not sys.stdin.isatty():
             raise ValueError("hidden key entry needs a terminal; use environment/.env for scripted runs")
@@ -88,10 +99,16 @@ def configure_provider() -> ProviderConfig | None:
         with warnings.catch_warnings():
             warnings.simplefilter("error", getpass.GetPassWarning)
             try:
-                key = getpass.getpass("API key (hidden, this session only): ").strip()
+                key = getpass.getpass("API key (hidden; saved securely when available): ").strip()
             except getpass.GetPassWarning:
                 raise ValueError("terminal cannot hide input; configure the key in .env instead") from None
     config = ProviderConfig(key, model, provider)
+    if entered_key or (saved and not replace_key and saved['model'] != model):
+        try:
+            save_credentials(provider, key, model)
+            prose('Saved securely in the OS credential store. Reused automatically unless environment/.env overrides it.', 'success')
+        except CredentialStoreError as exc:
+            prose(f'{exc}. This configuration could not be saved; the current session remains usable.', 'warning')
     prose("Ready. Answered questions use up to two paid API calls: SQL planning and answer summary. No automatic retries.", "success")
     prose("The summary call sends SQL result rows (including any names/IDs), SQL, and coverage to your chosen provider. Use /summary to turn it off.")
     return config
@@ -132,7 +149,7 @@ def main() -> int:
             except ValueError as exc:
                 prose(f"Configuration: {exc}", "warning")
         print()
-        prose("Commands: /examples, /quality, /inspect INVOICE_ID, /provider, /summary, /evaluate, /quit")
+        prose("Commands: /examples, /quality, /inspect INVOICE_ID, /provider, /key, /forget, /summary, /evaluate, /quit")
         print("Try: Which region has the highest average MRR per account?")
         while True:
             question = prompt("Ask or enter a command", "/quit")
@@ -141,6 +158,18 @@ def main() -> int:
                     break
                 if question == '/provider':
                     config = configure_provider()
+                elif question == '/key':
+                    if config is None:
+                        config = configure_provider()
+                    else:
+                        config = configure_provider(config.provider, replace_key=True)
+                elif question == '/forget':
+                    if config is None:
+                        prose('Choose the provider with /provider before forgetting its saved key.')
+                    else:
+                        forget_credentials(config.provider)
+                        config = None
+                        prose('Saved vault entry deleted; active key cleared. Explicit environment/.env credentials are managed separately.', 'success')
                 elif question == '/summary':
                     include_summary = not include_summary
                     print('AI summaries ' + ('on: result rows are sent to the provider.' if include_summary else 'off: result rows stay local.'))
@@ -173,7 +202,7 @@ def main() -> int:
         print("Next: README.md for commands; docs/HANDOFF.md for design and remaining work.")
         return 0
     except (EOFError, KeyboardInterrupt):
-        print("\nSession ended. No entered API key was saved.")
+        print("\nSession ended. Successfully saved keys remain in your OS credential store; /forget removes them.")
         return 0
     except (ValueError, OSError, sqlite3.Error, csv.Error) as exc:
         print(paint(safe_text(f"Could not start the tour: {exc}"), "error", sys.stderr), file=sys.stderr)

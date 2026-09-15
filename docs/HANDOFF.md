@@ -14,6 +14,7 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - `app/modeling.py`: one provisional as-of snapshot per account.
 - `app/storage.py`: schema/constraints, atomic replacement, local provenance inspection.
 - `app/query.py`: SQLite authorizer, restricted columns/functions, resource limits.
+- `app/credentials.py`: native macOS/Windows vaults and Linux Secret Service, no plaintext fallback; `/key` replaces and `/forget` removes saved entries.
 - `app/provider_options.py`: dated affordable defaults, pricing references, and numbered API-key onboarding links.
 - `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
 - `app/service.py`: question validation, planning, execution, and optional answer synthesis.
@@ -26,7 +27,7 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 
 ## Verification evidence
 
-- 38 offline tests pass on Python 3.12.14 and 3.14.2.
+- 43 offline tests pass on Python 3.12.14 and 3.14.2.
 - Six curated SQL answer cases match the independently committed fixture specification.
 - A real terminal check selected Claude and entered a synthetic key without echoing it; no API call was made.
 - Supplied ledger imported locally: 5,125 records, 5,000 invoice groups, 4,984 accepted invoices, 109 equivalent copies collapsed, 16 quarantined groups, 3,803 account snapshots.
@@ -43,6 +44,10 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 2. Should recorded amounts multiplied by the stated FX rates prevail when list pricing disagrees?
 
 Current behavior is provisional and visible in every query's coverage report. No reply is assumed. If clarified, amend specs first, then change isolated policy/modeling modules and independent expected results where the business meaning changes.
+
+## Paused at owner request
+
+The owner is taking a break and waiting for external business clarification. Complete no additional features until resumed. Secure persistence is the final requested change: saved keys are reused automatically; environment/`.env` overrides win. macOS write/read/update/delete passed using a removed synthetic entry; Windows/Linux remain unverified. Old session-only key entries cannot be recovered automatically.
 
 ## Next concrete checks
 

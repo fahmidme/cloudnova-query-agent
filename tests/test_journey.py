@@ -13,6 +13,12 @@ from app.guided import configure_provider, main
 
 
 class JourneyTests(unittest.TestCase):
+    def setUp(self):
+        for name, value in [('load_saved', None), ('save_credentials', None)]:
+            mock = patch('app.guided.' + name, return_value=value)
+            mock.start()
+            self.addCleanup(mock.stop)
+
     @patch('app.guided.read_settings', return_value={})
     @patch('app.guided.sys.stdin.isatty', return_value=True)
     @patch('app.guided.getpass.getpass', return_value='fake-hidden-key')
