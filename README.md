@@ -78,7 +78,7 @@ OPENAI_API_KEY=your-api-key
 OPENAI_MODEL=your-model-id
 ```
 
-For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. Use an OpenAI model supporting Responses and Structured Outputs (for example `gpt-4o-mini`), or a Claude model supporting Messages tool use. Model access varies by account; no model is silently substituted. `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
+For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. Use an OpenAI model supporting Responses and Structured Outputs (for example `gpt-4o-mini`), or a Claude model supporting Messages tool use. Model access varies by account; no model is silently substituted. Adapter contracts follow [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and [Anthropic Messages](https://platform.claude.com/docs/en/api/http/messages/create). `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
 
 ## Architecture and code trail
 
@@ -125,6 +125,6 @@ The provider receives the question, allowed schema, metric rules, and as-of date
 
 ## Verification and next day
 
-Verified locally: 32 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. Live provider behavior is **not yet verified with real credentials**. Windows/Linux execution is not yet verified. The build log records fresh-clone verification separately.
+Verified locally: 32 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. Live provider behavior is **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
 
 With another day: obtain answers to the two business-policy questions, run and expand live paraphrase/adversarial evaluations across both providers, add CI across operating systems, and strengthen source-format contracts. Add UI/cloud infrastructure only when the delivery context calls for it.

@@ -29,7 +29,7 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - Two excluded groups have contradictory sign/status and unknown financial bounds; do not present a complete total revenue range for this ledger.
 - The source copy fetched for local analysis was newline-normalized. The database hashes the actual local input bytes; do not call that hash a verification of the original Drive file bytes.
 - Live OpenAI/Claude behavior remains unverified until credentials are configured and actual calls are made. Mocked contract checks do not establish model accuracy.
-- See BUILD_LOG for the final fresh-clone check and actual completion time.
+- Fresh public clone of `917a68b`: guided journey, 32 tests, six answer checks, demo, and quarantine inspection passed in an empty Python 3.12.14 venv. Generated artifacts left Git clean. See BUILD_LOG for timing and exact scope.
 
 ## Business questions still awaiting clarification
 
