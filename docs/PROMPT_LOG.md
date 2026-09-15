@@ -23,3 +23,8 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
    **Assistant decision:** Use the Responses API behind a small standard-library adapter. Keep offline ingestion/demo/evaluation independent of credentials. Require explicit model configuration and verify live behavior separately.
 
 8. **Assistant implementation (summary, 12:26 UTC):** Built the pipeline from the committed specs, then ran 18 offline tests against independent fixture expectations. Used SQLite integer cents and Decimal conversion, preserved raw records locally, kept account modeling separate, and corrected connection cleanup to support atomic replacement across operating systems. CLI and live query work follow this milestone.
+
+9. **User direction (summary):** Prefer natural-language questions translated into SQL. Keep the one-hour implementation timebox, include Claude if time allows, and make one command guide reviewers through setup and testing.
+   **Assistant decision:** Added a shared SQL-plan boundary, OpenAI Responses and Claude Messages adapters, read-only SQLite authorization and resource limits. Kept all data computation local and provider calls optional.
+10. **User direction (summary):** Let reviewers choose the provider and enter their API key inside the journey; preserve incremental commits.
+    **Assistant implementation (summary, 12:40 UTC):** Committed the guided specification before code, then added the terminal journey with hidden session-only key input. Split query-layer and guided-journey milestones into separate pushed commits. Ran 32 offline tests, six answer checks, a supplied-data import, and a terminal check with a synthetic key. Live API behavior remains separately unverified.

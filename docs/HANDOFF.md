@@ -1,29 +1,47 @@
 # Handoff
 
-## Current state
+## Implemented state
 
-- Track B selected: a cleaning/modeling pipeline with a natural-language query layer.
-- Owner requested a minimal public repository scaffold first, then a pause before implementation.
-- README, agent instructions, build log, handoff, and ignore rules are present.
-- No application code, dependencies, data, business specification, container, or tests exist yet.
+Track B is implemented as a Python standard-library application with original offline fixtures, atomic SQLite import, auditable cleaning, account modeling, read-only question execution, OpenAI/Claude adapters, and a one-command guided reviewer journey. Start with `python3 run.py` from the repository directory.
 
-## Accepted direction
+Read README → this file → BUILD_LOG → relevant specs. The project is organized for another human or coding agent to continue; no A2A network/protocol is required.
 
-- Small Python modules, local SQL storage, and a thin AI query interface.
-- Easy reviewer setup with Python already installed, a project-local virtual environment, and pinned dependencies. Docker is not required.
-- Understandable code with useful comments, traceable decisions, and honest incremental commits.
-- Agent-readable context committed alongside the work.
+## Code map
 
-## Next step, after the owner starts implementation
+- `bootstrap.py`, `run.py`: local environment and entry point.
+- `app/pipeline.py`: ingestion, grouping/quarantine, coverage orchestration.
+- `app/normalize.py`, `app/dates.py`, `app/policies.py`: canonical fields, evidence-based date inference, Decimal money and business rules.
+- `app/modeling.py`: one provisional as-of snapshot per account.
+- `app/storage.py`: schema/constraints, atomic replacement, local provenance inspection.
+- `app/query.py`: SQLite authorizer, restricted columns/functions, resource limits.
+- `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
+- `app/service.py`: shared natural-language question orchestration.
+- `app/__main__.py`, `app/guided.py`: JSON commands and terminal journey.
+- `app/evaluate.py`, `tests/`: independent expected answers and contract/safety tests.
 
-Read the supplied business context and assessment requirements, then write the actual specification and evaluation expectations before coding. Record active work time and preparation honestly against the assessment timebox.
+## Verification evidence
 
-Resolve and document deduplication, ambiguous dates, account-level subscription state, revenue/refund semantics, and treatment of invalid records. Choose the database, dependency management, model provider/configuration, and precise demo contract. Decide how reviewers obtain the supplied dataset without publishing private source material by accident.
+- 32 offline tests pass on Python 3.12.14 and 3.14.2.
+- Six curated SQL answer cases match the independently committed fixture specification.
+- A real terminal check selected Claude and entered a synthetic key without echoing it; no API call was made.
+- Supplied ledger imported locally: 5,125 records, 5,000 invoice groups, 4,984 accepted invoices, 109 equivalent copies collapsed, 16 quarantined groups, 3,803 account snapshots.
+- Supplied-data flags: 1,171 date inferences, 142 invalid emails, 1,603 price/FX mismatches, 980 uncertain account snapshots. Counts are issue events, not all distinct affected invoices.
+- Two excluded groups have contradictory sign/status and unknown financial bounds; do not present a complete total revenue range for this ledger.
+- The source copy fetched for local analysis was newline-normalized. The database hashes the actual local input bytes; do not call that hash a verification of the original Drive file bytes.
+- Live OpenAI/Claude behavior remains unverified until credentials are configured and actual calls are made. Mocked contract checks do not establish model accuracy.
+- See BUILD_LOG for the final fresh-clone check and actual completion time.
 
-## Planning clarification — 2026-09-15
+## Business questions still awaiting clarification
 
-The owner accepted an installed Python runtime as a reviewer prerequisite and preferred a simpler setup over Docker. Read-only inspection of the supplied CSV began to ground the business-rule discussion in actual records. This is preparation, not an implemented pipeline or a completed specification.
+1. Is `account_id` authoritative despite inconsistent company names, and is the latest accepted invoice a suitable snapshot?
+2. Should recorded amounts multiplied by the stated FX rates prevail when list pricing disagrees?
 
-## Validation status
+Current behavior is provisional and visible in every query's coverage report. No reply is assumed. If clarified, amend specs first, then change isolated policy/modeling modules and independent expected results where the business meaning changes.
 
-This scaffold has no runtime behavior to test. Repository and remote verification should be reported separately from future application, container, evaluation, and live-model verification. A successful push does not prove any planned application behavior.
+## Next concrete checks
+
+1. If a local key is available, run `python -m app evaluate --live --provider openai` or `anthropic`, record exact model/results, and investigate failed semantic cases. This makes up to seven paid calls.
+2. Apply external business clarification when received.
+3. Run the one-command journey on Windows/Linux before claiming those platforms verified.
+
+Do not commit credentials, supplied data, private correspondence, generated databases, or raw API output. `.env` and `work/` are ignored. Maintain incremental commits and distinguish offline/provider/publication evidence. Implementation began at 12:15 UTC; preparation happened earlier and must not be folded into a fictitious one-hour total.

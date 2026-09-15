@@ -11,6 +11,7 @@ import warnings
 
 from .config import PROVIDERS, ProviderConfig, read_settings
 from .demo import QUESTIONS, UNSUPPORTED
+from .evaluate import evaluate
 from .pipeline import ingest
 from .query import execute_query
 from .service import ask
@@ -88,7 +89,8 @@ def configure_provider() -> ProviderConfig | None:
         print("Requires Responses + Structured Outputs support (for example, gpt-4o-mini).")
     else:
         print("Requires Messages tool use; use the model ID from your Claude API console.")
-    model = prompt("Model ID", settings.get(f"{prefix}_MODEL", ""))
+    configured_model = settings.get(f"{prefix}_MODEL", "")
+    model = prompt("Model ID", "" if configured_model == "your-model-id" else configured_model)
     key = settings.get(f"{prefix}_API_KEY", "")
     if key == "your-api-key":
         key = ""
@@ -144,7 +146,7 @@ def main() -> int:
                 break
             except ValueError as exc:
                 print(f"Configuration: {exc}")
-        print("\nCommands: /examples, /quality, /inspect INVOICE_ID, /provider, /quit")
+        print("\nCommands: /examples, /quality, /inspect INVOICE_ID, /provider, /evaluate, /quit")
         print("Try: Which region has the highest average MRR per account?")
         while True:
             question = prompt("Ask or enter a command", "/quit")
@@ -162,6 +164,15 @@ def main() -> int:
                     for label, sql in QUESTIONS:
                         print(f"\n{label}")
                         show_answer(execute_query(database, sql))
+                elif question == '/evaluate' and config is not None:
+                    if prompt("Run up to 7 paid model calls against the original sample? y/n", "n").lower() == 'y':
+                        print("Running live answer checks...", flush=True)
+                        evaluation = evaluate(config)
+                        for case in evaluation['cases']:
+                            print(('PASS' if case['passed'] else 'FAIL') + ': ' + case['question'])
+                            if not case['passed']:
+                                print(json.dumps(case, indent=2, ensure_ascii=True))
+                        print("All cases passed." if evaluation['passed'] else "Some cases failed; review the details above.")
                 elif config is None:
                     print("Use /provider to enable natural-language questions, or /examples for offline SQL.")
                 else:

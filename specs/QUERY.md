@@ -25,6 +25,8 @@ For unsupported historical churn, forecasts, or unavailable attributes, return a
 
 The owner requested OpenAI or Claude selection and hidden API-key entry within the one-command journey. Keep keys in process memory for this session; do not save them automatically. Allow an explicit model identifier (with editable examples). Existing environment or `.env` values can be reused. `LLM_PROVIDER` selects `openai` (default) or `anthropic`; Claude uses `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The machine CLI also accepts `--provider`.
 
+The guided `/evaluate` command runs the seven-case live regression set using the session's provider/key after a visible paid-call count prompt. It requires an explicit yes; offline tests remain separately available without credentials.
+
 Claude uses the fixed Anthropic Messages endpoint `https://api.anthropic.com/v1/messages` with the same schema/metric contract, a forced `query_plan` client tool, and local validation of exactly one tool plan. No tool result or invoice data is sent back. Apply the same timeout, redirect rejection, error sanitization, and no-retry policy. Provider integration checks with mocked responses are not live model evaluations.
 
 ## SQL execution boundary: the chosen production-hardening feature
