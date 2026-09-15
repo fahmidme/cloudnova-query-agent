@@ -31,9 +31,9 @@ Prefer small Python modules, explicit inputs and outputs, and a thin command-lin
 
 ## Reproducible setup target
 
-The implementation should offer a container-based, single-command demo after cloning and documented configuration. The host should not need Python, a database server, or manually installed Python packages. Dependencies should be pinned and installed inside the container.
+The implementation should assume a supported Python installation on the reviewer's machine. Use a project-local virtual environment and pinned dependencies, with a simple documented setup command and demo command. Prefer Python's built-in SQLite support so a separate database server is unnecessary.
 
-A supported container runtime must already be installed and running. Initial setup requires internet access to download images and dependencies. Live model calls may require a configured provider API key and network access. A fresh machine with literally no tools cannot run a repository without these bootstrap prerequisites; document them plainly and do not silently install system software.
+Document the supported Python version and any pip/venv prerequisites. Initial dependency installation requires internet access. Live model calls may require a configured provider API key and network access. Docker is not a reviewer prerequisite. Do not silently install system software.
 
 Validate the eventual instructions from a fresh clone with no existing project environment or generated database. Document credential requirements and whether evaluations can run without paid model calls. The exact command and dependency choices will be specified during implementation; none are available yet.
 

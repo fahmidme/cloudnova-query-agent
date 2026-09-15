@@ -9,7 +9,7 @@
 
 ## Current boundary
 
-This is the repository setup stage. Do not begin Track B implementation until the owner explicitly starts that work. Do not create placeholder application code or claim planned capabilities are implemented.
+The owner authorized Track B implementation on 2026-09-15. Build from the committed specifications. Account identity/snapshot and FX discrepancy policies remain provisional pending clarification. Do not claim planned or unverified capabilities work.
 
 ## Specification and implementation
 
@@ -22,7 +22,7 @@ This is the repository setup stage. Do not begin Track B implementation until th
 
 ## Reproducibility and verification
 
-- Aim for a documented container-based demo that avoids host Python/database dependencies. Pin dependencies and document the minimal host prerequisites.
+- Assume a supported host Python installation. Use a local virtual environment and pinned dependencies; document Python/pip/venv prerequisites. Prefer built-in SQLite without a database server. Docker is not required for reviewer setup.
 - Verify setup from a fresh clone, not only an existing developer environment. Record exactly what ran and whether it used fixtures, supplied data, or live provider calls.
 - Specify evaluation expectations independently from implementation outputs. Include at least one documented expected failure; do not disguise failures as passing results.
 - Keep the agreed work timebox honest. Log actual progress and unfinished work, including preparation; do not fabricate timestamps, prompt history, or prior spec authorship.
