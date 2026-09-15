@@ -111,3 +111,22 @@ seven-case live regression and fresh public clone are checked separately below.
 **Accounting:** this is a new session beginning approximately 16:13 UTC, beyond the
 earlier 54-minute implementation checkpoint. It must not be represented as fitting
 inside the original hour. External account/FX clarification remains pending.
+
+
+**First full live regression:** GPT-5.6 Luna passed 5/7 cases. The highest-region query
+returned four ranked regions instead of the requested single winner. The period-churn
+reply correctly refused calculation but incorrectly proposed an earlier as-of
+re-import and omitted the opening cohort requirement. Updated general prompt rules
+for result cardinality and the distinction between snapshot churn and period churn;
+independent expected rows were unchanged. Reran the seven cases after that correction.
+
+
+**Final live regression:** all 7/7 cases passed with `gpt-5.6-luna` after the prompt
+correction: paid revenue $2,710; refunds $49 and net $2,661; one winning region NA
+$269.50; Enterprise/Starter snapshot churn 100%/0%; the five expected accounts/CSAT
+flags; two pending/failed invoices with $247 exposure; and a period-churn explanation
+explicitly requiring both opening accounts and dated events. Manually read that
+explanation in addition to the harness's limited text check. This run disables the
+final answer call for SQL cases and does not score prose accuracy. Session live
+verification used 21 provider requests in total (smoke/recheck plus two seven-case
+runs), all on the original synthetic fixture. No private supplied ledger was sent.

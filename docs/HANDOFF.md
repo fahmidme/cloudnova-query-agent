@@ -2,7 +2,7 @@
 
 ## Implemented state
 
-Track B is implemented as a Python standard-library application with original offline fixtures, atomic SQLite import, auditable cleaning, account modeling, read-only question execution, OpenAI/Claude adapters, and a one-command guided reviewer journey. Start with `python3 run.py` from the repository directory.
+Track B is implemented as a Python standard-library application with original offline fixtures, atomic SQLite import, auditable cleaning, account modeling, read-only question execution, OpenAI/Claude adapters, and a one-command guided reviewer journey. The owner resumed work to replace the SQL-only planner with a bounded native tool-calling conversation. Start with `python3 run.py` from the repository directory.
 
 Read README → this file → BUILD_LOG → relevant specs. The project is organized for another human or coding agent to continue; no A2A network/protocol is required.
 
@@ -16,10 +16,11 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - `app/query.py`: SQLite authorizer, restricted columns/functions, resource limits.
 - `app/credentials.py`: native macOS/Windows vaults and Linux Secret Service, no plaintext fallback; `/key` replaces and `/forget` removes saved entries.
 - `app/provider_options.py`: dated affordable defaults, pricing references, and numbered API-key onboarding links.
-- `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
-- `app/service.py`: question validation, planning, execution, and optional answer synthesis.
+- `app/provider.py`, `app/config.py`: native OpenAI/Claude tool-call adapters, explicit model/provider settings, sanitized transport errors, no automatic retries.
+- `app/service.py`: one optional SQL tool execution, native result continuation, and two-request limit.
+- `app/prompts.py`: editable conversational instructions, invariant metric rules, allowed schema and coverage.
+- `app/conversation.py`: three-turn/12 KB in-memory history; `/clear` and provider/key/sharing changes reset it.
 - `app/guardrails.py`: basic malicious-input prefilter; SQL authorization remains the enforcement boundary.
-- `app/summary.py`: bounded result-to-model answer synthesis, with computed results preserved on failure.
 - `app/presentation.py`: wrapped prose, readable currency/headers, multiline SQL, and safe terminal rendering.
 - `app/__main__.py`, `app/guided.py`: JSON commands and terminal journey.
 - `app/terminal.py`: dependency-free semantic colors with TTY, `NO_COLOR`, and terminal-support checks; table widths are calculated before styling.
@@ -27,15 +28,15 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 
 ## Verification evidence
 
-- 43 offline tests pass on Python 3.12.14 and 3.14.2.
+- 54 offline tests pass on Python 3.12.14 and 3.14.2 after the tool-calling refactor.
 - Six curated SQL answer cases match the independently committed fixture specification.
 - A real terminal check selected Claude and entered a synthetic key without echoing it; no API call was made.
 - Supplied ledger imported locally: 5,125 records, 5,000 invoice groups, 4,984 accepted invoices, 109 equivalent copies collapsed, 16 quarantined groups, 3,803 account snapshots.
 - Supplied-data flags: 1,171 date inferences, 142 invalid emails, 1,603 price/FX mismatches, 980 uncertain account snapshots. Counts are issue events, not all distinct affected invoices.
 - Two excluded groups have contradictory sign/status and unknown financial bounds; do not present a complete total revenue range for this ledger.
 - The source copy fetched for local analysis was newline-normalized. The database hashes the actual local input bytes; do not call that hash a verification of the original Drive file bytes.
-- Owner-provided screenshot shows a successful live GPT-5.6 Luna region/MRR question on the fixture. New answer synthesis, Claude live behavior, and the full live regression set remain unverified. Mocked contract checks do not establish model accuracy.
-- Answered questions now send SQL result rows and coverage to the selected provider for a second call by default; `/summary` or `ask --no-summary` disables this. No raw audit records or contact column are sent. The seven-call SQL eval disables synthesis.
+- Earlier owner-provided screenshot/transcript established live GPT-5.6 Luna planning and two summaries on the old flow. The refactored agent also passed a live sample smoke: capabilities, regional MRR ($269.50), contextual EMEA follow-up ($99.00), and profit refusal. Initial live regression was 5/7: extra ranking rows and misleading period-churn guidance were actual failures. After general prompt corrections, all 7/7 cases passed on a fresh regression run; both runs are recorded in BUILD_LOG. Claude remains mocked-contract verified only.
+- Query turns send SQL result rows/coverage as a native tool result to the same provider by default; `/summary` or `ask --no-summary` disables this. Recent guided conversation also goes to the provider; no raw audit records or contact column are sent. The seven-call SQL eval disables result sharing. Direct replies have `status=conversation`; successful queries `answered`; rejected queries remain `query_error`.
 - Fresh public clone of `917a68b`: guided journey, 32 tests, six answer checks, demo, and quarantine inspection passed in an empty Python 3.12.14 venv. Generated artifacts left Git clean. See BUILD_LOG for timing and exact scope.
 
 ## Business questions still awaiting clarification
@@ -45,13 +46,16 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 
 Current behavior is provisional and visible in every query's coverage report. No reply is assumed. If clarified, amend specs first, then change isolated policy/modeling modules and independent expected results where the business meaning changes.
 
-## Paused at owner request
+## Current scope
 
-The owner is taking a break and waiting for external business clarification. Complete no additional features until resumed. Secure persistence is the final requested change: saved keys are reused automatically; environment/`.env` overrides win. macOS write/read/update/delete passed using a removed synthetic entry; Windows/Linux remain unverified. Old session-only key entries cannot be recovered automatically.
+The owner resumed specifically for the small tool-calling refactor. Complete that
+refactor and its verification, then stop for review. Do not assume business-policy
+clarifications have arrived. Secure key persistence continues to reuse saved entries;
+environment/`.env` overrides win. History is session-only and is separate from keys.
 
 ## Next concrete checks
 
-1. If a local key is available, run `python -m app evaluate --live --provider openai` or `anthropic`, record exact model/results, and investigate failed semantic cases. This makes up to seven paid calls.
+1. Review the recorded live OpenAI regression results; Claude live behavior is still a separate unverified gate. The optional seven-call eval checks SQL and limited unsupported wording, not broad prose accuracy.
 2. Apply external business clarification when received.
 3. Run the one-command journey on Windows/Linux before claiming those platforms verified.
 

@@ -1,6 +1,6 @@
 # CloudNova Query Agent
 
-A spec-driven invoice pipeline and natural-language SQL agent. Ask a question, inspect the generated SQL, and see the locally computed answer with data-quality caveats.
+A spec-driven invoice pipeline with a small conversational agent. Ask naturally, follow up, and inspect the read-only SQL and computed evidence behind data answers.
 
 **Python 3.11+ · SQLite · zero third-party runtime dependencies · OpenAI or Claude**
 
@@ -24,7 +24,7 @@ The command creates `.venv` and walks you through:
 4. **Run evaluations:** execute the independent offline test suite.
 5. **Ask questions:** choose OpenAI or Claude, press Enter for the selected model (or type another ID), and enter your API key at a hidden terminal prompt. Newly entered keys are saved in the OS credential store and reused automatically on later runs.
 
-Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, `/key`, `/forget`, and `/quit` during the session. `/summary` toggles conversational answer synthesis (on by default). `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
+Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, `/key`, `/forget`, `/clear`, and `/quit` during the session. `/summary` toggles returning SQL results to the model (on by default). `/evaluate` offers seven live SQL checks using the session key after confirming the paid-call count. The guided agent keeps up to three recent turns in memory for follow-ups such as “What about EMEA?”; `/clear` resets this context. Provider/key changes and result-sharing toggles also clear history. The JSON `ask` command is stateless.
 
 The guided terminal uses color for headings, prompts, SQL labels, and status messages. Set `NO_COLOR=1` for plain text. Redirected output and unsupported terminals automatically stay plain; JSON commands are unchanged.
 
@@ -32,6 +32,7 @@ The sample, pipeline, SQL examples, and offline evaluations work without interne
 
 ## What to try
 
+- What kinds of questions can you help me answer?
 - What is the paid invoice revenue for 2024 in USD?
 - Which region has the highest average MRR per account, including churned accounts?
 - Compare Enterprise and Starter snapshot churn rates.
@@ -120,7 +121,7 @@ OPENAI_API_KEY=your-api-key
 OPENAI_MODEL=gpt-5.6-luna
 ```
 
-For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. The defaults are `gpt-5.6-luna` and `claude-haiku-4-5-20251001`; an omitted model uses its provider default. Explicit model settings take precedence and are never silently replaced on errors. OpenAI overrides must support Responses and Structured Outputs; Claude overrides must support Messages tool use. Luna uses `reasoning.effort=none` for these bounded SQL plans. Model access varies by account. Adapter contracts follow [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and [Anthropic Messages](https://platform.claude.com/docs/en/api/http/messages/create). `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
+For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. The defaults are `gpt-5.6-luna` and `claude-haiku-4-5-20251001`; an omitted model uses its provider default. Explicit model settings take precedence and are never silently replaced on errors. OpenAI overrides must support Responses function calling; Claude overrides must support Messages tool use. Luna uses `reasoning.effort=none` for these bounded agent turns. Model access varies by account. Adapter contracts follow [OpenAI function calling](https://developers.openai.com/api/docs/guides/function-calling) and [Claude tool calls/results](https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls). `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
 
 ## Architecture and code trail
 
@@ -135,25 +136,35 @@ flowchart TD
     S --> DB[(Invoices, accounts, raw provenance, issues)]
     CLI --> P
     CLI --> A[service.py: ask]
-    A --> L[provider.py: OpenAI or Claude]
-    L --> PLAN[Validated SQL or unsupported plan]
-    PLAN --> Q[query.py: authorizer and resource limits]
+    A --> L[provider.py: native OpenAI / Claude tools]
+    CTX[conversation.py: bounded session context] --> A
+    PROMPT[prompts.py: conversation + metric rules] --> L
+    L --> CHOICE{Model response}
+    CHOICE -->|Natural reply or clarification| HUMAN[presentation.py]
+    CHOICE -->|query_database call| Q[query.py: authorizer and limits]
     DB --> Q
-    Q --> OUT[SQL + local rows + coverage]
-    OUT --> SUM[summary.py: second provider call]
-    SUM --> HUMAN[presentation.py: answer, evidence, SQL]
-    OUT --> HUMAN
+    Q --> OUT[Local rows + SQL + coverage, or tool error]
+    OUT --> FINAL[Native tool result to same model; tools disabled]
+    FINAL --> HUMAN
+    OUT -->|Sharing off or final call fails| HUMAN
     CLI --> E[evaluate.py + tests]
 ```
 
-The first model call receives the question, allowed schema, metric rules, and as-of date. SQLite executes the generated query locally. A second model call receives the executed SQL, result columns/rows, and coverage caveats to write a short conversational answer. Result rows may contain account names or identifiers; raw audit records and the contact-email column are excluded. The terminal leads with the AI summary, then shows formatted local results and readable multiline SQL.
+The model receives conversational instructions, the schema and metric definitions, coverage metadata, and recent session context. It chooses whether to respond directly or call the single `query_database(sql, explanation)` tool. Python validates the tool call and executes SQL through the existing read-only authorizer. Results return as a native tool result with the matching call ID; the model then explains them. There is no question/answer lookup table, routing classifier, framework, or autonomous action network.
 
-Answered questions use up to **two paid calls**. `/summary` or `ask --no-summary` disables synthesis and keeps result rows local. Unsupported questions use one call. If synthesis fails or exceeds its 32 KB input budget, the computed results remain available. The seven-call live SQL evaluation disables synthesis; its pass/fail results do not assess prose accuracy.
+Each turn uses **one or two paid calls and at most one SQL attempt**. The second call has tools disabled; local validation also rejects further calls. Failed SQL remains a failed query even if the explanation sounds fluent. There are no automatic retries. Successful results remain visible when the final response fails or evidence exceeds 32 KB.
+
+Recent conversation is sent to the chosen provider and kept only in local session memory (three turns, at most 12 KB). History includes the prior SQL/interpretation and any displayed model reply, not raw tool payloads. The final call sends result rows, which can include names/IDs; raw audit records and contact-email fields are excluded. `/summary` or `ask --no-summary` skips returning results to the model; local-only rows never enter subsequent history. Switching result sharing clears prior conversation. API keys retain their separate OS credential-store behavior.
+
+The seven-call live SQL evaluation disables result sharing. Its content check for the unsupported churn explanation is deliberately limited; review the explanation manually. Mocked tool-call tests establish orchestration and safety contracts, not language understanding or model accuracy.
 
 | Start here | Purpose |
 | --- | --- |
 | [Pipeline specification](specs/PIPELINE.md) | Schema, date inference, duplicates, FX, revenue, MRR, account snapshots |
-| [Query specification](specs/QUERY.md) | Provider contracts, SQL safety, command behavior |
+| [Agent specification](specs/AGENT.md) | Current tool loop, conversation, limits and privacy |
+| [Agent prompts](app/prompts.py) | Editable conversational instructions and metric definitions |
+| [Agent orchestration](app/service.py) | One tool execution and optional final response |
+| [Query specification](specs/QUERY.md) | Original contract, credentials, SQL safety, command behavior |
 | [Evaluation specification](specs/EVALUATION.md) | Original fixture and independently calculated expectations |
 | [Agent instructions](AGENTS.md) | Read order, code conventions, verification and continuity |
 | [Handoff](docs/HANDOFF.md) | Verified state, unresolved decisions, next concrete work |
@@ -167,7 +178,7 @@ Answered questions use up to **two paid calls**. `/summary` or `ask --no-summary
 - **Revenue:** recorded local amounts × stated FX, rounded per invoice to integer USD cents. Paid, refunded, and net revenue are distinct. Price discrepancies are flagged.
 - **MRR and churn:** one provisional latest-invoice snapshot per account. MRR uses plan price × seats × discount, including annual contracts; churned accounts contribute zero MRR. Regional means include those zero accounts. Churn is a snapshot ratio, not period churn.
 - **Pending clarification:** account identity/latest-invoice precedence and recorded-amount/FX precedence. The implementation labels both policies provisional.
-- **Basic input guard:** rejects obvious instruction overrides, credential requests, destructive commands, and terminal control characters before a paid call. This is a heuristic, not complete prompt-injection prevention. Result cells are untrusted summary evidence; the summary model has no action tools. Terminal output escapes control characters.
+- **Basic input guard:** rejects obvious instruction overrides, credential requests, destructive commands, and terminal control characters before a paid call. This is a heuristic, not complete prompt-injection prevention. Result cells are untrusted tool evidence; tools are disabled when the model receives results. Direct conversational replies are model-generated and are not independently verified by SQL. New numerical findings are required by the prompt to use SQL; this semantic requirement is not a complete hallucination detector. Terminal output escapes control characters.
 - **SQL hardening:** read-only connections; allowed tables, columns and functions; denied writes, raw/contact access, recursive queries and extensions; bounded SQL work and output. This constrains execution, not semantic correctness. A safe query can still answer the wrong question.
 - **Data and scale:** the full supplied CSV is not in this public repo. Use your local copy. Imports are bounded to 20 MB and store sensitive raw provenance locally. This is a take-home CLI, not a deployed multiuser service.
 
@@ -177,13 +188,15 @@ The assessment asks for one production-hardening touch. This project's chosen bo
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -p test_query.py -v
-.venv/bin/python -m unittest discover -s tests -p test_answers.py -v
+.venv/bin/python -m unittest discover -s tests -p test_agent.py -v
 ```
 
 These verify that writes, raw/contact-table reads, unsafe functions, multiple statements, recursive queries, and excessive SQL work are rejected; obvious malicious questions are blocked before a paid call; result-cell instructions stay in the evidence payload; and a failed summary preserves computed results. No API key is needed. The heuristic input filter is only a first check: SQLite's authorizer enforces the actual data-access boundary.
 
 ## Verification and next day
 
-Verified locally: 43 offline tests on Python **3.12.14 and 3.14.2**, six independent SQL answer cases, the 5,125-record supplied-data import, and terminal provider/key selection. The owner supplied a screenshot of a successful GPT-5.6 Luna question on the fixture. The new synthesis path and full live-provider regression set are **not yet verified with real credentials**. Windows/Linux execution is not yet verified. A fresh public clone also passed the guided journey, tests, demo, and answer checks in a new Python 3.12 venv with no third-party packages. See the build log for exact evidence.
+Verified locally: **54 offline tests on Python 3.12.14 and 3.14.2**, six independent SQL answer cases, and the earlier supplied-data import. Native tool contracts, errors, budgets, history resets and result-sharing opt-out are covered with mocked provider responses. Live GPT-5.6 Luna smoke checks on the synthetic fixture exercised capabilities, regional MRR, a contextual EMEA follow-up and a missing-expense explanation. The initial seven-case regression found two real semantic failures; after general prompt corrections, **all seven live OpenAI cases passed**. This small fixture regression is not a broad accuracy claim; the build log preserves both runs. Claude live behavior and Windows/Linux execution remain unverified. Fresh-clone evidence is recorded separately by commit.
+
+**Timebox:** the first implementation checkpoint took approximately 54 minutes. The owner-requested tool-calling refactor is a later extension; the combined work must not be described as completed inside one hour.
 
 With another day: obtain answers to the two business-policy questions, run and expand live paraphrase/adversarial evaluations across both providers, add CI across operating systems, and strengthen source-format contracts. Add UI/cloud infrastructure only when the delivery context calls for it.
