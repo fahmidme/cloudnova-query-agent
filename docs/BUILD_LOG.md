@@ -130,3 +130,17 @@ explanation in addition to the harness's limited text check. This run disables t
 final answer call for SQL cases and does not score prose accuracy. Session live
 verification used 21 provider requests in total (smoke/recheck plus two seven-case
 runs), all on the original synthetic fixture. No private supplied ledger was sent.
+
+
+**Fresh public clone, 16:23 UTC:** anonymously cloned `35cf290` with global Git
+configuration disabled. `python3 run.py` created an empty Python 3.12.14 virtual
+environment; the guided sample journey, all 54 tests, `/clear`, `/summary`, and normal
+exit passed. The six independent offline answer cases passed separately. The venv
+had no third-party packages, user site-packages were disabled, and generated outputs
+left Git clean. This check made no provider calls. The published implementation is
+ready for owner review; Claude live and Windows/Linux runtime checks remain open.
+
+**Time checkpoint:** this resumed refactor took approximately 10–11 additional
+minutes, bringing the two implementation sessions to roughly 64–65 minutes. Earlier
+repository preparation and research are separate. No claim of completion inside the
+original one-hour timebox is made.
