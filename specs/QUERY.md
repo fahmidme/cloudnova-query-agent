@@ -2,6 +2,10 @@
 
 Written before implementation on 2026-09-15.
 
+**Current agent amendment:** [AGENT.md](AGENT.md) supersedes the SQL-only planning,
+forced query-plan response, and separate synthesis protocol below. Earlier sections
+record the original design; unchanged data/credential/SQL rules still apply.
+
 ## Commands to implement
 
 - `python run.py`: create the local environment and launch a guided reviewer journey: select the original fixture or a CSV path, inspect quality and sample SQL, run offline evaluations, then optionally configure a provider and ask live questions. Noninteractive input must exit cleanly; hidden key entry requires a terminal.

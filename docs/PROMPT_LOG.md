@@ -40,3 +40,8 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
 
 14. **User direction (summary):** Safely persist API keys after first entry instead of repeatedly asking for them. Finish the current change, report time spent, then pause while the owner takes a break and waits for clarification.
     **Assistant implementation (summary):** Added OS credential-store backends and automatic reuse, with `/key` replacement and `/forget` deletion. Preserved explicit environment/.env precedence and session-only operation when secure storage is unavailable. Verified macOS lifecycle using a removed synthetic entry and added mocked credential tests. Recorded the paused state and remaining live/business checks.
+
+15. **User direction (summary):** Reviewed a live CLI transcript showing two successful result summaries and a failed capabilities question. Requested the actual prompts and current/proposed architecture; rejected mapping potential questions to canned answers.
+    **Assistant finding:** The first response contract allowed only SQL or unsupported; it had no conversational path or history. The pasted transcript establishes two live OpenAI synthesis examples for the earlier implementation, not a complete regression run.
+16. **User prompt (verbatim):** "Look into tool call type of architecture and let's restructure around that. Basically agent style but without overengineering it."
+    **Assistant design (summary):** Consulted official native tool-calling documentation and wrote AGENT.md first. One read-only SQL tool, automatic conversational replies, one SQL attempt/two model calls per turn, short session context, and existing security/credential boundaries. This is a resumed extension beyond the earlier 54-minute checkpoint.
