@@ -25,3 +25,9 @@
 Implementation began at 12:15 UTC after owner authorization. Committed specifications and independent expected answers in `e263e17` before application code. Implemented separate policy, date, normalization, modeling, pipeline, and storage modules, with an original 11-record fixture and dependency-free venv bootstrap.
 
 **Verification:** 18 offline unittest cases passed on Python 3.14.2. These cover the hand-calculated revenue/MRR/churn/exposure results, uncertainty bounds, duplicate source references, invalid input, as-of snapshots, date inference, and failed-import preservation. CLI and OpenAI integration are the next milestone and are not verified yet. Earlier preparation remains separately visible in this log.
+
+## 2026-09-15 12:35 UTC — Query layer and provider adapters
+
+Added a machine-readable CLI, bounded read-only SQL execution, OpenAI Responses structured plans, and an optional Claude Messages tool-plan adapter. Provider settings use explicit model IDs and never expose keys in object representations. Shared orchestration computes answers locally.
+
+**Verification:** 27 offline tests passed. New checks cover forbidden tables/columns/writes/recursive queries, row and instruction budgets, CTE aggregates, malformed/refused provider output, sanitized HTTP errors, and mocked question execution/unsupported responses. A test caught SQLite's database-name omission for COUNT(*) authorization; the narrow allowed-table fix now passes. Both provider integrations remain unverified with live credentials. Demo answers use curated SQL.
