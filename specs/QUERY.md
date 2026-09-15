@@ -4,6 +4,7 @@ Written before implementation on 2026-09-15.
 
 ## Commands to implement
 
+- `python run.py`: create the local environment and launch a guided reviewer journey: select the original fixture or a CSV path, inspect quality and sample SQL, run offline evaluations, then optionally configure a provider and ask live questions. Noninteractive input must exit cleanly; hidden key entry requires a terminal.
 - `python bootstrap.py`: create `.venv`, verify Python 3.11+ and SQLite support, print OS-specific next commands. No packages or network required.
 - `python -m app demo`: import the bundled original fixture into `work/demo.sqlite`, show deterministic stakeholder queries and results. Label this as an offline SQL demonstration, not live natural-language generation.
 - `python -m app ingest PATH --db PATH [--as-of YYYY-MM-DD]`: validate/import a supplied ledger and print quality report JSON.
@@ -19,6 +20,12 @@ Read `OPENAI_API_KEY` and `OPENAI_MODEL` from the environment or a project-local
 Send only the user's question, a static schema/metric contract, and as-of metadata. Do not send invoice rows, contacts, company names, result rows, or raw source files. Set `store=false`. The model generates a structured plan containing `sql`, `explanation`, and `unsupported_reason`, with nullable sql/reason. Parse/validate this contract locally; reject refusals, incomplete output, multiple messages, malformed JSON, and missing/unexpected fields. Treat model output as untrusted.
 
 For unsupported historical churn, forecasts, or unavailable attributes, return an explicit unsupported response instead of fabricating SQL. Show explanation as model-provided interpretation, not proof of correctness. Deterministic query results are the answer; no second LLM summarization call.
+
+## Guided provider choice — added before implementation
+
+The owner requested OpenAI or Claude selection and hidden API-key entry within the one-command journey. Keep keys in process memory for this session; do not save them automatically. Allow an explicit model identifier (with editable examples). Existing environment or `.env` values can be reused. `LLM_PROVIDER` selects `openai` (default) or `anthropic`; Claude uses `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The machine CLI also accepts `--provider`.
+
+Claude uses the fixed Anthropic Messages endpoint `https://api.anthropic.com/v1/messages` with the same schema/metric contract, a forced `query_plan` client tool, and local validation of exactly one tool plan. No tool result or invoice data is sent back. Apply the same timeout, redirect rejection, error sanitization, and no-retry policy. Provider integration checks with mocked responses are not live model evaluations.
 
 ## SQL execution boundary: the chosen production-hardening feature
 
