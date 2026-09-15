@@ -47,3 +47,7 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
     **Assistant design (summary):** Consulted official native tool-calling documentation and wrote AGENT.md first. One read-only SQL tool, automatic conversational replies, one SQL attempt/two model calls per turn, short session context, and existing security/credential boundaries. This is a resumed extension beyond the earlier 54-minute checkpoint.
 
     **Assistant implementation (summary):** Implemented native tool calls for both providers, moved prompts into a dedicated module, and added bounded session history. Verified 54 offline checks and live OpenAI conversation/query/follow-up behavior on the original fixture. Live evaluation exposed result-size and period-churn explanation mistakes; corrected the general prompt rules and reran the independent cases. No new runtime dependencies.
+
+
+17. **User direction (summary):** Make the README more useful and polished, with GitHub badges, separate application and agent architecture diagrams, and examples showing CLI color; keep it approachable.
+    **Assistant implementation (summary):** Added a focused landing page, linked reviewer guide, self-contained badges, and a reproducible colored CLI preview using recorded sample wording and locally recomputed SQL evidence. Kept verification limitations and time accounting visible; no application behavior or provider calls changed.

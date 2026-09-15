@@ -4,7 +4,7 @@
 
 Track B is implemented as a Python standard-library application with original offline fixtures, atomic SQLite import, auditable cleaning, account modeling, read-only question execution, OpenAI/Claude adapters, and a one-command guided reviewer journey. The owner resumed work to replace the SQL-only planner with a bounded native tool-calling conversation. Start with `python3 run.py` from the repository directory.
 
-Read README → this file → BUILD_LOG → relevant specs. The project is organized for another human or coding agent to continue; no A2A network/protocol is required.
+Read README → this file → BUILD_LOG → relevant specs. Detailed reviewer setup and commands now live in `docs/REVIEWER_GUIDE.md`; `docs/assets/README.md` explains the reproducible CLI preview. The project is organized for another human or coding agent to continue; no A2A network/protocol is required.
 
 ## Code map
 

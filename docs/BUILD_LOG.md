@@ -144,3 +144,28 @@ ready for owner review; Claude live and Windows/Linux runtime checks remain open
 minutes, bringing the two implementation sessions to roughly 64–65 minutes. Earlier
 repository preparation and research are separate. No claim of completion inside the
 original one-hour timebox is made.
+
+
+## 2026-09-15 — Reviewer-focused README refresh
+
+Owner requested a more useful, visually polished README with GitHub badges, separate
+application/agent architecture diagrams, and colored CLI examples without excessive
+length. Restructured the landing page around quick start, a contextual answer preview,
+model selection, two diagrams, key data decisions, verification, and continuation.
+Moved detailed API-key onboarding, configuration, scripted commands, troubleshooting
+and development links to `docs/REVIEWER_GUIDE.md`; session commands are collapsible.
+
+Added four self-contained SVG badges with truthful stack/recorded-test labels (no
+fictional CI status). External badge requests returned HTTP 403 in this environment,
+so local assets avoid that dependency. The colored CLI preview uses the real terminal
+formatter and the recorded EMEA answer from the original synthetic-fixture smoke
+check. A standard-library generator recomputes and asserts its SQL rows, then exports
+SVG and accessible plain text. No API key is read and no live call is made. The title
+bar is documentation framing; no latency is invented. Preview provenance and the
+reproduction command are documented beside the assets.
+
+**Checks:** regenerated the preview from the original fixture, verified its expected
+columns/rows, checked all relative documentation links, parsed all SVG assets, and
+reviewed the local rendering. Application code is unchanged; runtime test counts and
+live evidence refer to the previous recorded verification. This documentation polish
+is additional work outside the earlier implementation time checkpoints.
