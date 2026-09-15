@@ -6,7 +6,7 @@ import sys
 import venv
 
 
-def main():
+def ensure_environment() -> Path:
     if sys.version_info < (3, 11):
         raise SystemExit("Python 3.11+ is required.")
     try:
@@ -18,6 +18,12 @@ def main():
     root = Path(__file__).resolve().parent
     # No packages are needed, so pip/ensurepip downloads are unnecessary.
     venv.EnvBuilder(with_pip=False).create(root / ".venv")
+    return root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def main():
+    ensure_environment()
+    root = Path(__file__).resolve().parent
     executable = ".venv\\Scripts\\python.exe" if os.name == "nt" else ".venv/bin/python"
     print(f"Environment ready. From {root.name}, run:")
     print(f"  {executable} -m app demo")

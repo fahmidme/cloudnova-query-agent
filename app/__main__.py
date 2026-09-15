@@ -9,6 +9,7 @@ import sys
 
 from .config import load_config
 from .demo import run_demo
+from .evaluate import evaluate
 from .pipeline import ingest
 from .service import ask
 from .query import execute_query
@@ -19,6 +20,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="CloudNova invoice pipeline and SQL query agent")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("demo", help="run the original fixture and curated SQL offline")
+    evaluation = commands.add_parser("evaluate", help="six offline checks or seven live provider calls")
+    evaluation.add_argument("--live", action="store_true")
+    evaluation.add_argument("--provider", choices=("openai", "anthropic"))
     command = commands.add_parser("ingest", help="import a supplied CSV and report quality")
     command.add_argument("csv", type=Path)
     command.add_argument("--db", type=Path, default=Path("work/cloudnova.sqlite"))
@@ -35,6 +39,8 @@ def main() -> int:
     try:
         if args.command == "demo":
             result = run_demo()
+        elif args.command == "evaluate":
+            result = evaluate(load_config(provider=args.provider) if args.live else None)
         elif args.command == "ingest":
             result = ingest(args.csv, args.db, args.as_of)
         elif args.command == "inspect":
@@ -44,7 +50,7 @@ def main() -> int:
         else:
             result = ask(args.question, args.db, load_config(provider=args.provider))
         print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
-        return 0
+        return 1 if args.command == "evaluate" and not result["passed"] else 0
     except (ValueError, OSError, sqlite3.Error, csv.Error) as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
