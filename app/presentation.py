@@ -64,26 +64,28 @@ def table(columns: list, rows: list):
 
 def show_answer(result: dict):
     print()
-    if result.get('status') == 'unsupported':
-        print(paint('Cannot answer from this data', 'warning'))
-        prose(result['unsupported_reason'])
-        return
-    summary = result.get('summary')
-    if summary:
+    if result.get('answer'):
         print(paint('Answer', 'heading'))
-        prose(summary['answer'])
-        for caveat in summary['caveats']:
-            prose(caveat, 'warning', prefix='• ')
-        prose('AI summary of the computed results below.', 'muted')
-    elif result.get('explanation'):
-        print(paint('Query interpretation', 'heading'))
-        prose(result['explanation'])
-    if result.get('summary_error'):
-        prose('Summary unavailable. The SQL results are still available below.', 'warning')
-        prose(result['summary_error'], 'muted')
-    print('\n' + paint('Computed results', 'heading'))
-    table(result['columns'], result['rows'])
-    print('\n' + paint('SQL used', 'sql'))
+        prose(result['answer'])
+    if result.get('status') == 'conversation':
+        prose('Conversation · no database query executed.', 'muted')
+        prose(f"Model {result['provider_elapsed_ms']/1000:.2f}s · 1 API call", 'muted')
+        return
+    if result.get('status') == 'query_error':
+        prose('Query failed; no computed answer is available.', 'warning')
+        prose(result['tool_error'], 'muted')
+    else:
+        if result.get('answer'):
+            prose('AI explanation of the computed results below.', 'muted')
+        elif result.get('explanation'):
+            print(paint('Query interpretation', 'heading'))
+            prose(result['explanation'])
+        if result.get('summary_error'):
+            prose('Answer unavailable. The SQL results are still available below.', 'warning')
+            prose(result['summary_error'], 'muted')
+        print('\n' + paint('Computed results', 'heading'))
+        table(result['columns'], result['rows'])
+    print('\n' + paint('SQL attempted' if result.get('status') == 'query_error' else 'SQL used', 'sql'))
     for line in safe_text(result['sql'], multiline=True).splitlines():
         print(textwrap.fill(line, width=width(), initial_indent='  ', subsequent_indent='    ',
                             replace_whitespace=False, drop_whitespace=False))
@@ -91,11 +93,15 @@ def show_answer(result: dict):
         report = result['coverage']
         print()
         excluded = report['quarantined_invoice_groups']
-        prose(f"As of {report['as_of']} · {report['accepted_invoices']:,} accepted invoices · "
+        prose(f"As of {report['as_of']} · {report['modeled_accounts']:,} modeled accounts · "
+              f"{report['accepted_invoices']:,} accepted invoices · "
               f"{excluded:,} excluded invoice {'group' if excluded == 1 else 'groups'}. /quality for full caveats.", 'muted')
     if 'provider_elapsed_ms' in result:
-        timing = f"Query planning {result['provider_elapsed_ms']/1000:.2f}s · SQLite {result['query_elapsed_ms']:.1f}ms"
-        if summary:
-            timing += f" · Summary {summary['summary_elapsed_ms']/1000:.2f}s"
+        timing = f"Agent {result['provider_elapsed_ms']/1000:.2f}s"
+        if 'query_elapsed_ms' in result:
+            timing += f" · SQLite {result['query_elapsed_ms']:.1f}ms"
+        if 'summary_elapsed_ms' in result:
+            timing += f" · Answer {result['summary_elapsed_ms']/1000:.2f}s"
+        timing += f" · {result['provider_calls']} API call(s)"
         prose(timing, 'muted')
     print()

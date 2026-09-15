@@ -10,6 +10,7 @@ from unittest.mock import patch
 from app.config import ProviderConfig
 from app.evaluate import evaluate
 from app.guided import configure_provider, main
+from app.pipeline import ingest
 
 
 class JourneyTests(unittest.TestCase):
@@ -56,6 +57,33 @@ class JourneyTests(unittest.TestCase):
         self.assertFalse(result['passed'])
         self.assertEqual(len(result['cases']), 7)
         self.assertTrue(all(not case['passed'] for case in result['cases']))
+
+    def test_history_reset_commands_and_blank_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report = ingest(Path(__file__).resolve().parents[1] / 'fixtures/invoices.csv',
+                            Path(directory) / 'sample.sqlite')
+        config = ProviderConfig('fake-key', 'test-model')
+        for command in ('/clear', '/summary', '/provider', '/key', '/forget'):
+            observed = []
+
+            def fake_ask(question, database, config, include_summary, conversation):
+                observed.append((len(conversation.messages), include_summary))
+                result = {'status': 'conversation', 'answer': 'A test response', 'provider_elapsed_ms': 1}
+                conversation.remember(question, result)
+                return result
+
+            commands = ['sample', 'n', '', 'First question', command]
+            if command == '/forget':
+                commands.append('/provider')
+            commands += ['Next question', '/quit']
+            with self.subTest(command=command), patch('builtins.input', side_effect=commands), \
+                    patch('app.guided.ingest', return_value=report), \
+                    patch('app.guided.configure_provider', return_value=config), \
+                    patch('app.guided.forget_credentials'), \
+                    patch('app.guided.ask', side_effect=fake_ask), redirect_stdout(io.StringIO()):
+                self.assertEqual(main(), 0)
+                self.assertEqual([size for size, _ in observed], [0, 0])
+                self.assertEqual(observed[-1][1], command != '/summary')
 
 
 if __name__ == '__main__':

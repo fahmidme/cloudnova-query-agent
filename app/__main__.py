@@ -27,7 +27,7 @@ def main() -> int:
     command.add_argument("csv", type=Path)
     command.add_argument("--db", type=Path, default=Path("work/cloudnova.sqlite"))
     command.add_argument("--as-of", help="snapshot date YYYY-MM-DD; default maximum accepted invoice date")
-    for name, argument, help_text in (("ask", "question", "generate SQL using a configured provider and query locally"),
+    for name, argument, help_text in (("ask", "question", "converse with a configured provider and optional read-only SQL tool"),
                                      ("sql", "sql", "execute a manually supplied read-only query"),
                                      ("inspect", "invoice_id", "inspect original records and issues locally")):
         command = commands.add_parser(name, help=help_text)

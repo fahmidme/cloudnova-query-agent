@@ -1,6 +1,7 @@
 """Small, independent answer regression set; offline and live evidence stay distinct."""
 
 from pathlib import Path
+import re
 import tempfile
 
 from .config import ProviderConfig
@@ -21,6 +22,14 @@ EXPECTED = [
       ['A5', 'Epsilon', 108.0, 'unknown'], ['A3', 'Gamma', 0.0, 'not_low']]),
     (['invoices', 'exposure_usd'], [[2, 247.0]]),
 ]
+
+
+def explains_missing_churn_evidence(answer: dict) -> bool:
+    """Limited live-eval assertion, not application routing or a semantic guarantee."""
+    text = answer.get('answer', '').lower()
+    return (answer.get('status') == 'conversation' and 'sql' not in answer
+            and bool(re.search(r'\b(event|events|date|dates)\b', text))
+            and bool(re.search(r'\b(cohort|cohorts|opening|start|starting)\b', text)))
 
 
 def evaluate(config: ProviderConfig | None = None) -> dict:
@@ -46,9 +55,9 @@ def evaluate(config: ProviderConfig | None = None) -> dict:
         if config:
             try:
                 answer = ask(UNSUPPORTED['question'], database, config, include_summary=False)
-                results.append({'question': UNSUPPORTED['question'], 'passed': answer.get('status') == 'unsupported', 'answer': answer})
+                results.append({'question': UNSUPPORTED['question'], 'passed': explains_missing_churn_evidence(answer), 'answer': answer})
             except (ValueError, OSError) as exc:
                 results.append({'question': UNSUPPORTED['question'], 'passed': False, 'error': str(exc)})
     return {'mode': 'live' if config else 'offline curated SQL',
             'passed': all(case['passed'] for case in results), 'cases': results,
-            'unsupported_recognition': 'live checked' if config else 'not tested live; mocked contract test only'}
+            'unsupported_recognition': 'limited live content check; review explanation manually' if config else 'not tested live; mocked contract test only'}

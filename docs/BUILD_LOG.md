@@ -75,3 +75,39 @@ Added OS-protected persistence for entered API keys/model choices: macOS Keychai
 **Verification:** 43 offline tests passed on Python 3.12.14 and 3.14.2; six independent answer checks passed. New checks cover automatic reuse without getpass, unavailable-store behavior, explicit configuration precedence, serialization/deletion, and Linux stdin secret transport. A real macOS Keychain test wrote, read, updated, deleted, and verified absence of a temporary synthetic entry. Windows/Linux backends remain unverified on their respective platforms. No real API key was accessed in the tests and no paid API call was made.
 
 **Pause:** owner is taking a break and waiting for the account/FX clarification email. Implementation began at 12:15 UTC; this final checkpoint is approximately 54 minutes later, leaving roughly six minutes against the original one-hour implementation timebox. Earlier preparation is separate. Remaining work when resumed: apply confirmed business answers and verify live synthesis/provider regressions. Do not continue feature work during the pause.
+
+
+## 2026-09-15 — Resumed native tool-calling refactor
+
+Owner explicitly resumed work to replace the rigid SQL/unsupported planner with a
+small agent-style conversation, without question-to-answer mappings. Specification
+`04845c0` preceded the implementation. Consulted official OpenAI function-calling
+and Claude tool-call/result documentation.
+
+Replaced the old JSON planner and separate summary module with automatic native
+`query_database` calls and a bounded continuation in the same conversation. The
+model can answer directly or ask a clarification. Code enforces one SQL attempt,
+two provider requests, strict tool-name/argument checks, no retries, and the existing
+read-only SQLite limits. Added three-turn/12 KB session history, `/clear`, automatic
+clearing on provider/key/sharing changes, and local-only result handling with
+`/summary` disabled. Prompts and metric rules now live in `app/prompts.py`.
+
+**Verification at implementation commit:** 54 offline tests passed on Python 3.12.14
+and 3.14.2, plus all six independent curated SQL cases. Migrated old provider and
+summary tests to native tool contracts; added actual local SQL round trips with
+mocked HTTP for both providers, error feedback, no second tool execution, history
+bounds/clearing, opt-out privacy, and result preservation. No external framework or
+runtime dependency was added.
+
+**Live smoke:** using the saved OpenAI configuration and original synthetic fixture,
+a capabilities reply used one call, the regional MRR answer used two calls and
+returned NA $269.50, a contextual “What about EMEA?” returned $99.00 using two calls,
+and profit received an expense-data explanation using one call. The initial
+capabilities reply incorrectly said local-currency data was unavailable; clarified
+that prompt rule and a one-call recheck correctly described separate-currency totals.
+This is seven successful paid calls, not a comprehensive accuracy claim. The full
+seven-case live regression and fresh public clone are checked separately below.
+
+**Accounting:** this is a new session beginning approximately 16:13 UTC, beyond the
+earlier 54-minute implementation checkpoint. It must not be represented as fitting
+inside the original hour. External account/FX clarification remains pending.

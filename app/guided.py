@@ -9,6 +9,8 @@ import subprocess
 import sys
 import warnings
 
+from .conversation import Conversation
+from .provider import ProviderError
 from .config import PROVIDERS, ProviderConfig, read_settings
 from .credentials import CredentialStoreError, load_saved, save_credentials, forget_credentials
 from .demo import QUESTIONS, UNSUPPORTED
@@ -109,8 +111,8 @@ def configure_provider(provider: str | None = None, replace_key: bool = False) -
             prose('Saved securely in the OS credential store. Reused automatically unless environment/.env overrides it.', 'success')
         except CredentialStoreError as exc:
             prose(f'{exc}. This configuration could not be saved; the current session remains usable.', 'warning')
-    prose("Ready. Answered questions use up to two paid API calls: SQL planning and answer summary. No automatic retries.", "success")
-    prose("The summary call sends SQL result rows (including any names/IDs), SQL, and coverage to your chosen provider. Use /summary to turn it off.")
+    prose("Ready. Each turn uses one or two paid API calls and at most one read-only query. No automatic retries.", "success")
+    prose("Recent conversation, schema and coverage go to your chosen provider. Query results (including names/IDs) are returned to the model to explain the answer. /summary keeps new result rows local; /clear resets conversation history.")
     return config
 
 
@@ -142,6 +144,7 @@ def main() -> int:
         print("Choose a provider now, or keep exploring the curated SQL offline.")
         config = None
         include_summary = True
+        conversation = Conversation()
         while True:
             try:
                 config = configure_provider()
@@ -149,30 +152,39 @@ def main() -> int:
             except ValueError as exc:
                 prose(f"Configuration: {exc}", "warning")
         print()
-        prose("Commands: /examples, /quality, /inspect INVOICE_ID, /provider, /key, /forget, /summary, /evaluate, /quit")
+        prose("Commands: /examples, /quality, /inspect INVOICE_ID, /provider, /key, /forget, /summary, /clear, /evaluate, /quit")
         print("Try: Which region has the highest average MRR per account?")
         while True:
-            question = prompt("Ask or enter a command", "/quit")
+            question = prompt("Ask or enter a command")
+            if not question:
+                continue
             try:
                 if question == '/quit':
                     break
                 if question == '/provider':
+                    conversation.clear()
                     config = configure_provider()
                 elif question == '/key':
+                    conversation.clear()
                     if config is None:
                         config = configure_provider()
                     else:
                         config = configure_provider(config.provider, replace_key=True)
                 elif question == '/forget':
+                    conversation.clear()
                     if config is None:
                         prose('Choose the provider with /provider before forgetting its saved key.')
                     else:
                         forget_credentials(config.provider)
                         config = None
                         prose('Saved vault entry deleted; active key cleared. Explicit environment/.env credentials are managed separately.', 'success')
+                elif question == '/clear':
+                    conversation.clear()
+                    prose('Conversation cleared.', 'success')
                 elif question == '/summary':
+                    conversation.clear()
                     include_summary = not include_summary
-                    print('AI summaries ' + ('on: result rows are sent to the provider.' if include_summary else 'off: result rows stay local.'))
+                    print('Conversation cleared. AI answers from results ' + ('on: result rows are sent to the provider.' if include_summary else 'off: result rows stay local.'))
                 elif question == '/quality':
                     quality(report)
                 elif question.startswith('/inspect '):
@@ -194,8 +206,10 @@ def main() -> int:
                 elif config is None:
                     print("Use /provider to enable natural-language questions, or /examples for offline SQL.")
                 else:
-                    print("Planning and running SQL, then preparing your answer...", flush=True)
-                    show_answer(ask(question, database, config, include_summary=include_summary))
+                    print("Looking into your question...", flush=True)
+                    show_answer(ask(question, database, config, include_summary=include_summary, conversation=conversation))
+            except ProviderError:
+                prose("The model could not complete a usable response. Try rephrasing, or use /provider to check access and configuration. No automatic retry was made.", 'warning')
             except (ValueError, OSError, sqlite3.Error) as exc:
                 prose(f"Could not complete this action: {exc}", "error")
         print("\n" + paint("Session complete.", "success") + " Local audit database: work/reviewer.sqlite")
