@@ -123,7 +123,7 @@ flowchart TD
 | Latest accepted invoice supplies the account snapshot | MRR is provisional; churned accounts contribute zero. Snapshot churn is not period churn. |
 | Recorded amounts × stated FX drive USD revenue | Keep paid revenue, refunds and net revenue distinct; flag pricing discrepancies. |
 
-**Pending clarification:** account identity/snapshot precedence and recorded-amount/FX precedence. Both remain explicit provisional policies. The supplied assessment CSV stays outside this public repository; bring your local copy. [Detailed decisions and limits →](docs/REVIEWER_GUIDE.md#business-decisions-and-limitations)
+**Submission assumptions:** use `account_id` for identity, the latest accepted invoice for the account snapshot, and recorded invoice amounts with the supplied FX rates for USD revenue. These are documented implementation choices; external confirmation remains outstanding. The supplied assessment CSV stays outside this public repository; bring your local copy. [Detailed decisions and limits →](docs/REVIEWER_GUIDE.md#business-decisions-and-limitations)
 
 ## Verification
 

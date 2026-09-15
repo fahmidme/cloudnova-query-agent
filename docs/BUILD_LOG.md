@@ -179,3 +179,19 @@ published GitHub README: normal glyph proportions and aligned table columns. Als
 verified the four badge images, both rendered Mermaid diagrams, quick-start layout,
 and collapsed command section on GitHub. The local preview browser URL was blocked;
 GitHub verification used the explicitly authorized public README after publication.
+
+
+## 2026-09-15 — Locked submission checkpoint
+
+Owner selected the current implementation for submission without further feature
+work. The account identity/latest-invoice and recorded-amount/FX choices remain
+explicit assumptions, with no external confirmation claimed. Updated the README and
+handoff to distinguish these chosen submission assumptions from resolved business
+questions. The annotated `submission-v1` tag freezes this review version.
+
+Verification carries forward from the recorded implementation and README checks:
+54 offline tests, six independent SQL cases, seven passing live OpenAI cases after
+the documented corrections, and fresh-clone setup. No new runtime code or paid API
+calls were added for this checkpoint. The original timebox overrun remains disclosed.
+The recruiting response is prepared separately as an unsent email draft; no private
+correspondence is committed and no send is implied by this checkpoint.

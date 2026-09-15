@@ -54,3 +54,7 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
 
 18. **User feedback (summary):** The CLI image looked artificial, with stretched text.
     **Assistant correction:** Removed fixed SVG text widths, used natural monospace metrics and colored spans, and visually checked the corrected public GitHub rendering.
+
+
+19. **User direction (summary):** With no further clarification received, lock the current implementation and prepare a recruiting response draft.
+    **Assistant action (summary):** Selected the existing implementation assumptions for the submission, preserved their provisional status, and froze the review version under `submission-v1`. Email preparation remains separate from sending.

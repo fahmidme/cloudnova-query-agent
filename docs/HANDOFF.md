@@ -39,19 +39,28 @@ Read README → this file → BUILD_LOG → relevant specs. Detailed reviewer se
 - Query turns send SQL result rows/coverage as a native tool result to the same provider by default; `/summary` or `ask --no-summary` disables this. Recent guided conversation also goes to the provider; no raw audit records or contact column are sent. The seven-call SQL eval disables result sharing. Direct replies have `status=conversation`; successful queries `answered`; rejected queries remain `query_error`.
 - Fresh public clone of `35cf290`: guided journey, 54 tests, six answer checks, history clearing, summary toggle and normal exit passed in an empty Python 3.12.14 venv. Generated artifacts left Git clean. See BUILD_LOG for the final live 7/7 regression and earlier checkpoints.
 
-## Business questions still awaiting clarification
+## Locked submission assumptions
 
-1. Is `account_id` authoritative despite inconsistent company names, and is the latest accepted invoice a suitable snapshot?
-2. Should recorded amounts multiplied by the stated FX rates prevail when list pricing disagrees?
+The owner selected the current implementation for submission on 2026-09-15 after
+no clarification reply arrived. The annotated Git tag `submission-v1` identifies
+the frozen review version. No further features are planned for this checkpoint.
 
-Current behavior is provisional and visible in every query's coverage report. No reply is assumed. If clarified, amend specs first, then change isolated policy/modeling modules and independent expected results where the business meaning changes.
+1. Treat `account_id` as the authoritative identifier, using the latest accepted
+   invoice as the provisional account snapshot and flagging conflicting attributes.
+2. Use recorded invoice amounts and supplied FX rates for USD revenue, flagging
+   discrepancies against list pricing instead of silently replacing the amounts.
+
+These are chosen implementation assumptions, not externally confirmed business
+semantics. Conflicting invoice groups remain quarantined and their interpretable
+financial impact is reported as conditional uncertainty. The app's provisional
+policy flags remain intentional. If feedback changes a rule, update specifications
+and independent expectations in a subsequent version; preserve this tag.
 
 ## Current scope
 
-The owner resumed specifically for the small tool-calling refactor. Complete that
-refactor and its verification, then stop for review. Do not assume business-policy
-clarifications have arrived. Secure key persistence continues to reuse saved entries;
-environment/`.env` overrides win. History is session-only and is separate from keys.
+Implementation and README polish are complete for the selected submission. The owner
+requested a same-thread recruiting reply draft. Email preparation does not establish
+that submission was sent. Keep private correspondence and credentials outside Git.
 
 ## Next concrete checks
 
