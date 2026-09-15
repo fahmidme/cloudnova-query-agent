@@ -31,3 +31,6 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
 
 11. **User prompt (verbatim):** "Lets add some color to the cli"
     **Assistant implementation (summary):** Added a small semantic ANSI palette to the guided terminal, keeping status text, aligned tables, plain redirected output, and `NO_COLOR` support. No new dependencies or provider calls.
+
+12. **User direction (summary):** Replace the old model example with a current, affordable preselected model; include exact API-key setup steps and links.
+    **Assistant implementation (summary):** Checked official provider documentation. Preselected GPT-5.6 Luna and Claude Haiku 4.5, preserved model overrides, and added dated pricing plus numbered console/billing/key instructions to the CLI and README. Verified default acceptance and request configuration locally; no real credential was used.

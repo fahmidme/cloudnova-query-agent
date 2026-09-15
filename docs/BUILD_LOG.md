@@ -51,3 +51,9 @@ README now includes exact reviewer commands, module-linked specifications, an ar
 Added a dependency-free semantic color helper and applied it to guided headings, prompts, table headers, SQL labels, success, warnings, and errors. Color is supplementary to textual labels and is disabled for redirected output, `NO_COLOR`, dumb terminals, and Windows consoles without a recognized ANSI host. Amended the presentation specification before implementation.
 
 **Verification:** all 32 existing tests passed. Checked colored terminal output, plain pipe output, `NO_COLOR`, dumb-terminal fallback, and equal table alignment after removing ANSI sequences. Ran the complete offline journey through redirected input/output. No live API calls or new packages. This polish checkpoint is about 38 minutes after the implementation start; earlier preparation remains separate.
+
+## 2026-09-15 12:55 UTC — Affordable model defaults and API-key onboarding
+
+Owner requested a current, affordable preselected model and exact steps/links for obtaining API keys. Official documentation identifies GPT-5.6 Luna as OpenAI's cost-sensitive model (standard short-context $0.20 input / $1.20 output per million tokens); Claude's current least-expensive option is Haiku 4.5 ($1 / $5). Added these dated defaults, console/billing/key links, and numbered setup steps. Enter accepts the displayed default; configured or typed models remain explicit overrides. Luna uses its supported `none` reasoning setting for bounded SQL generation. Claude setup requests a single-workspace key to match the adapter's header support.
+
+**Verification:** 32 existing tests passed. Additional local checks exercised Enter acceptance for both defaults, missing-model configuration fallback, onboarding links, no key echo, and the Luna request's reasoning setting through a mocked transport. No live API request was made. This checkpoint is about 40 minutes after implementation began; earlier preparation remains separate.

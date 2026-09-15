@@ -22,7 +22,7 @@ The command creates `.venv` and walks you through:
 2. **Review quality:** see accepted records, duplicate handling, quarantined invoice groups, financial uncertainty, and provisional policies.
 3. **Inspect an answer:** view a curated SQL example and its computed result.
 4. **Run evaluations:** execute the independent offline test suite.
-5. **Ask questions:** choose OpenAI or Claude, enter a model ID, and enter your API key at a hidden terminal prompt. The entered key stays in memory for this session and is not saved.
+5. **Ask questions:** choose OpenAI or Claude, press Enter for the selected model (or type another ID), and enter your API key at a hidden terminal prompt. The entered key stays in memory for this session and is not saved.
 
 Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, and `/quit` during the session. `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
 
@@ -40,6 +40,35 @@ The sample, pipeline, SQL examples, and offline evaluations work without interne
 - What was Enterprise churn during February 2024? **Expected unsupported:** invoices do not provide churn event dates or the opening cohort.
 
 The original sample has **$2,710 paid revenue, $49 refunds, and $2,661 net revenue**. Its conflicting invoice group contributes an uncertain additional **$0–$490**. These are hand-calculated fixture expectations, not results from the supplied business ledger. See [evaluation specification](specs/EVALUATION.md).
+
+## Models and API keys
+
+Press Enter at **Model ID** to use the preselected affordable model, or type your own. Existing environment/`.env` model choices are preserved.
+
+| Provider | Preselected model | Standard USD price per 1M input / output tokens |
+| --- | --- | --- |
+| OpenAI | `gpt-5.6-luna` | $0.20 / $1.20, short context |
+| Claude | `claude-haiku-4-5-20251001` | $1 / $5 |
+
+Checked **2026-09-15** against [OpenAI model guidance](https://developers.openai.com/api/docs/models/gpt-5.6-luna), [OpenAI pricing](https://developers.openai.com/api/docs/pricing), and [Claude's current model lineup](https://platform.claude.com/docs/en/models/overview). Luna is OpenAI's current cost-sensitive model; Haiku 4.5 is the least expensive model in Claude's current lineup. These are our starting choices for the review, not a measured accuracy ranking. Actual charges depend on tokens and provider rates.
+
+### Get an OpenAI API key
+
+1. Sign in or create an account at [OpenAI Platform](https://platform.openai.com/).
+2. Select your organization/project. Open [API billing](https://platform.openai.com/settings/organization/billing/overview) and enable billing or add credits if needed.
+3. Open [API keys](https://platform.openai.com/api-keys), choose **Create new secret key**, name it **CloudNova review**, and select your project.
+4. Copy the new secret key. Return to this CLI, choose **1 OpenAI**, press Enter for **gpt-5.6-luna**, and paste the key at the hidden prompt.
+
+See the [official OpenAI quickstart](https://developers.openai.com/api/docs/quickstart) for provider setup. This repository already handles the client; no SDK installation is required.
+
+### Get a Claude API key
+
+1. Sign in or create an account at [Claude Console](https://platform.claude.com/).
+2. Open [API billing](https://platform.claude.com/settings/billing) and enable billing or add credits if needed.
+3. Open [Settings → API keys](https://platform.claude.com/settings/keys). Choose **Create key**, name it **CloudNova review**, link your own account, and scope it to **one workspace**. This prototype does not supply the extra header needed by multi-workspace keys.
+4. Copy the key when it is shown at creation. Return to the CLI, choose **2 Claude**, press Enter for **claude-haiku-4-5-20251001**, and paste the key at the hidden prompt.
+
+See [Claude's official key-creation guide](https://platform.claude.com/docs/en/get-api-key). If you cannot create a key or enable billing, ask your organization administrator. API billing is separate from chat subscriptions; this CLI never buys credits or saves an entered key automatically.
 
 ## Scriptable commands
 
@@ -77,10 +106,10 @@ The guided journey requires no configuration-file editing. For scripted use, cop
 ```dotenv
 LLM_PROVIDER=openai
 OPENAI_API_KEY=your-api-key
-OPENAI_MODEL=your-model-id
+OPENAI_MODEL=gpt-5.6-luna
 ```
 
-For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. Use an OpenAI model supporting Responses and Structured Outputs (for example `gpt-4o-mini`), or a Claude model supporting Messages tool use. Model access varies by account; no model is silently substituted. Adapter contracts follow [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and [Anthropic Messages](https://platform.claude.com/docs/en/api/http/messages/create). `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
+For Claude, use `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL`. Environment values override `.env`; `--provider` overrides the provider choice. The defaults are `gpt-5.6-luna` and `claude-haiku-4-5-20251001`; an omitted model uses its provider default. Explicit model settings take precedence and are never silently replaced on errors. OpenAI overrides must support Responses and Structured Outputs; Claude overrides must support Messages tool use. Luna uses `reasoning.effort=none` for these bounded SQL plans. Model access varies by account. Adapter contracts follow [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and [Anthropic Messages](https://platform.claude.com/docs/en/api/http/messages/create). `.env` is ignored by Git. Keys are never printed or included in generated artifacts.
 
 ## Architecture and code trail
 

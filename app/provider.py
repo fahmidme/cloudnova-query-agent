@@ -142,6 +142,9 @@ def generate_plan(question: str, as_of: str, config: ProviderConfig) -> dict:
         parse = parse_anthropic_response
     else:
         endpoint, payload = ENDPOINT, build_request(question, as_of, config)
+        if config.model == "gpt-5.6-luna":
+            # Bounded SQL plans do not need an additional hidden reasoning budget.
+            payload["reasoning"] = {"effort": "none"}
         headers = {"Authorization": f"Bearer {config.api_key}"}
         parse = parse_response
     request = Request(endpoint, data=json.dumps(payload).encode(),

@@ -14,6 +14,7 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - `app/modeling.py`: one provisional as-of snapshot per account.
 - `app/storage.py`: schema/constraints, atomic replacement, local provenance inspection.
 - `app/query.py`: SQLite authorizer, restricted columns/functions, resource limits.
+- `app/provider_options.py`: dated affordable defaults, pricing references, and numbered API-key onboarding links.
 - `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
 - `app/service.py`: shared natural-language question orchestration.
 - `app/__main__.py`, `app/guided.py`: JSON commands and terminal journey.

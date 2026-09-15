@@ -13,6 +13,7 @@ from .config import PROVIDERS, ProviderConfig, read_settings
 from .demo import QUESTIONS, UNSUPPORTED
 from .evaluate import evaluate
 from .pipeline import ingest
+from .provider_options import DEFAULT_MODELS, GUIDES
 from .query import execute_query
 from .service import ask
 from .storage import inspect_invoice
@@ -87,13 +88,18 @@ def configure_provider() -> ProviderConfig | None:
     if provider is None:
         raise ValueError("choose 1, 2, or 3")
     prefix = PROVIDERS[provider]
-    print("Enter a model ID available to your API account.")
-    if provider == "openai":
-        print("Requires Responses + Structured Outputs support (for example, gpt-4o-mini).")
-    else:
-        print("Requires Messages tool use; use the model ID from your Claude API console.")
+    guide = GUIDES[provider]
+    print(paint(f"Recommended: {guide['name']}", "heading"))
+    print(f"Default model pricing, checked 2026-09-15: {guide['price']}")
+    print(f"Current rates: {guide['pricing_url']}")
+    print("API key setup (if you already have a key, continue below):")
+    for number, step in enumerate(guide['steps'], 1):
+        print(f"  {number}. {step}")
+    print("API billing is separate from chat subscriptions. Keys entered here are not saved.")
+    print("Press Enter for the selected model, or type another model ID you can access.")
     configured_model = settings.get(f"{prefix}_MODEL", "")
-    model = prompt("Model ID", "" if configured_model == "your-model-id" else configured_model)
+    default_model = DEFAULT_MODELS[provider] if not configured_model or configured_model == "your-model-id" else configured_model
+    model = prompt("Model ID", default_model)
     key = settings.get(f"{prefix}_API_KEY", "")
     if key == "your-api-key":
         key = ""

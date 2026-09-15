@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .provider_options import DEFAULT_MODELS
+
 PROVIDERS = {"openai": "OPENAI", "anthropic": "ANTHROPIC"}
 
 
@@ -52,4 +54,4 @@ def load_config(env_file: Path = Path(".env"), provider: str | None = None) -> P
         raise ValueError("LLM_PROVIDER must be openai or anthropic")
     prefix = PROVIDERS[provider]
     return ProviderConfig(values.get(f"{prefix}_API_KEY", "").strip(),
-                          values.get(f"{prefix}_MODEL", "").strip(), provider)
+                          values.get(f"{prefix}_MODEL", "").strip() or DEFAULT_MODELS[provider], provider)

@@ -15,7 +15,7 @@ Written before implementation on 2026-09-15.
 
 ## OpenAI configuration
 
-Read `OPENAI_API_KEY` and `OPENAI_MODEL` from the environment or a project-local `.env` file without executing shell syntax. Existing environment values take precedence. Require the model explicitly instead of silently substituting one; provide a documented example. Responses API endpoint is fixed to https://api.openai.com/v1/responses. Use urllib with a timeout and no automatic retry of a possibly completed paid request. Do not follow credential-bearing HTTP redirects. Never log keys or raw HTTP error bodies.
+Read `OPENAI_API_KEY` and `OPENAI_MODEL` from the environment or a project-local `.env` file without executing shell syntax. Existing environment values take precedence. Use the documented provider default when the model is omitted; preserve explicit model overrides. Responses API endpoint is fixed to https://api.openai.com/v1/responses. Use urllib with a timeout and no automatic retry of a possibly completed paid request. Do not follow credential-bearing HTTP redirects. Never log keys or raw HTTP error bodies.
 
 Send only the user's question, a static schema/metric contract, and as-of metadata. Do not send invoice rows, contacts, company names, result rows, or raw source files. Set `store=false`. The model generates a structured plan containing `sql`, `explanation`, and `unsupported_reason`, with nullable sql/reason. Parse/validate this contract locally; reject refusals, incomplete output, multiple messages, malformed JSON, and missing/unexpected fields. Treat model output as untrusted.
 
@@ -26,6 +26,10 @@ For unsupported historical churn, forecasts, or unavailable attributes, return a
 The owner requested OpenAI or Claude selection and hidden API-key entry within the one-command journey. Keep keys in process memory for this session; do not save them automatically. Allow an explicit model identifier (with editable examples). Existing environment or `.env` values can be reused. `LLM_PROVIDER` selects `openai` (default) or `anthropic`; Claude uses `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The machine CLI also accepts `--provider`.
 
 The guided `/evaluate` command runs the seven-case live regression set using the session's provider/key after a visible paid-call count prompt. It requires an explicit yes; offline tests remain separately available without credentials.
+
+### Affordable defaults and key onboarding — owner-requested amendment
+
+Preselect `gpt-5.6-luna` for OpenAI and `claude-haiku-4-5-20251001` for Claude, verified against official model/pricing documentation on 2026-09-15. Enter accepts the shown model; a typed ID or configured model overrides it. Set OpenAI Luna reasoning effort to `none` for these bounded query plans to avoid spending the output budget on hidden reasoning; other model overrides retain provider defaults. Show dated standard input/output rates with a pricing link, plus numbered sign-in, billing, key-creation, and hidden-entry instructions in the CLI and README. Do not create accounts, buy credits, or save keys automatically. Claude onboarding should request a key scoped to a single workspace; multi-workspace key headers are not supported by this prototype.
 
 Claude uses the fixed Anthropic Messages endpoint `https://api.anthropic.com/v1/messages` with the same schema/metric contract, a forced `query_plan` client tool, and local validation of exactly one tool plan. No tool result or invoice data is sent back. Apply the same timeout, redirect rejection, error sanitization, and no-retry policy. Provider integration checks with mocked responses are not live model evaluations.
 
