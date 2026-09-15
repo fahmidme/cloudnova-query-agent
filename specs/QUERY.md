@@ -38,6 +38,10 @@ Claude uses the fixed Anthropic Messages endpoint `https://api.anthropic.com/v1/
 
 ## Answer contract
 
+### Terminal presentation
+
+Use a small standard-library ANSI helper for the guided journey: cyan headings/table headers, blue prompts, magenta SQL labels, green success, yellow caveats, red errors, and subdued separators/timing. Keep textual status labels so color is never the sole signal. Apply styles after calculating table widths. Disable styling for redirected output, `NO_COLOR`, `TERM=dumb`, and Windows terminals without a known ANSI-capable host. Machine-readable JSON commands remain plain.
+
 JSON output includes question (for ask), sql, columns, rows, interpretation (model-generated for ask), timing, and coverage report. Coverage always states excluded invoice groups, ambiguous/inferred date warnings, account snapshot assumptions, FX precedence, and as-of date. Currency columns should be labeled `_usd` or `_usd_cents`. Provenance is traceable using invoice_id and the inspect command; aggregate answers show their query/filter and coverage, not a claim that every row was individually cited.
 
 ## Limitations to preserve

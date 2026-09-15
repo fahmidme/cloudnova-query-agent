@@ -45,3 +45,9 @@ Cloned public commit `917a68b` with the global Git configuration disabled and an
 README now includes exact reviewer commands, module-linked specifications, an architecture diagram, business assumptions, verification limits, and next-day work. The selected prompt log is a labeled reconstruction; handoff state is current. Provider adapter implementation references the official OpenAI Structured Outputs and Anthropic Messages documentation.
 
 **Time accounting:** implementation ran from approximately 12:15 to 12:44 UTC (about 29 minutes) for this checkpoint. Earlier repository setup, research, and policy discussion are separate preparation and are not represented as part of a one-hour total. No real API credential was available in the project, so live OpenAI/Claude execution and the seven-case live harness remain unverified. No customer clarification reply is assumed. Windows/Linux are documented targets, not verified environments.
+
+## 2026-09-15 12:53 UTC — Requested CLI color polish
+
+Added a dependency-free semantic color helper and applied it to guided headings, prompts, table headers, SQL labels, success, warnings, and errors. Color is supplementary to textual labels and is disabled for redirected output, `NO_COLOR`, dumb terminals, and Windows consoles without a recognized ANSI host. Amended the presentation specification before implementation.
+
+**Verification:** all 32 existing tests passed. Checked colored terminal output, plain pipe output, `NO_COLOR`, dumb-terminal fallback, and equal table alignment after removing ANSI sequences. Ran the complete offline journey through redirected input/output. No live API calls or new packages. This polish checkpoint is about 38 minutes after the implementation start; earlier preparation remains separate.

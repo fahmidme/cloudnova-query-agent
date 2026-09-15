@@ -26,6 +26,8 @@ The command creates `.venv` and walks you through:
 
 Use `/examples`, `/quality`, `/inspect INVOICE_ID`, `/provider`, and `/quit` during the session. `/evaluate` offers seven live answer checks using the session key after confirming the paid-call count. Each natural-language question is independent; include the period and metric rather than referring to an earlier answer.
 
+The guided terminal uses color for headings, prompts, SQL labels, and status messages. Set `NO_COLOR=1` for plain text. Redirected output and unsupported terminals automatically stay plain; JSON commands are unchanged.
+
 The sample, pipeline, SQL examples, and offline evaluations work without internet or credentials after cloning. Live questions need internet and a funded provider API account with access to the model you select. A ChatGPT or Claude chat subscription alone is not an API key. Python must include its standard-library `venv` and `sqlite3` modules; no pip download, Docker, or database server is needed. The command does not install system software.
 
 ## What to try

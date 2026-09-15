@@ -28,3 +28,6 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
    **Assistant decision:** Added a shared SQL-plan boundary, OpenAI Responses and Claude Messages adapters, read-only SQLite authorization and resource limits. Kept all data computation local and provider calls optional.
 10. **User direction (summary):** Let reviewers choose the provider and enter their API key inside the journey; preserve incremental commits.
     **Assistant implementation (summary, 12:40 UTC):** Committed the guided specification before code, then added the terminal journey with hidden session-only key input. Split query-layer and guided-journey milestones into separate pushed commits. Ran 32 offline tests, six answer checks, a supplied-data import, and a terminal check with a synthetic key. Live API behavior remains separately unverified.
+
+11. **User prompt (verbatim):** "Lets add some color to the cli"
+    **Assistant implementation (summary):** Added a small semantic ANSI palette to the guided terminal, keeping status text, aligned tables, plain redirected output, and `NO_COLOR` support. No new dependencies or provider calls.

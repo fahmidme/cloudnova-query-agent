@@ -17,6 +17,7 @@ Read README → this file → BUILD_LOG → relevant specs. The project is organ
 - `app/provider.py`, `app/config.py`: explicit model/provider settings, one structured plan, sanitized transport errors, no automatic retries.
 - `app/service.py`: shared natural-language question orchestration.
 - `app/__main__.py`, `app/guided.py`: JSON commands and terminal journey.
+- `app/terminal.py`: dependency-free semantic colors with TTY, `NO_COLOR`, and terminal-support checks; table widths are calculated before styling.
 - `app/evaluate.py`, `tests/`: independent expected answers and contract/safety tests.
 
 ## Verification evidence
