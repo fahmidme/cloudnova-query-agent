@@ -19,3 +19,9 @@
 **AI contribution:** Updated the setup goals to a local virtual environment, pinned dependencies, and a proposed built-in SQLite database. Inspected the source CSV read-only to identify duplicate invoice conflicts, ambiguous dates, account-state inconsistencies, and a pricing/FX reconciliation issue. No transformation policy was implemented or presented as customer-approved.
 
 **Checks:** The text fetched from the supplied CSV parsed into 5,125 data records. Inspection scripts and source data remain outside the tracked repository. Setup and application behavior are still unimplemented and untested.
+
+## 2026-09-15 12:26 UTC — Core pipeline
+
+Implementation began at 12:15 UTC after owner authorization. Committed specifications and independent expected answers in `e263e17` before application code. Implemented separate policy, date, normalization, modeling, pipeline, and storage modules, with an original 11-record fixture and dependency-free venv bootstrap.
+
+**Verification:** 18 offline unittest cases passed on Python 3.14.2. These cover the hand-calculated revenue/MRR/churn/exposure results, uncertainty bounds, duplicate source references, invalid input, as-of snapshots, date inference, and failed-import preservation. CLI and OpenAI integration are the next milestone and are not verified yet. Earlier preparation remains separately visible in this log.

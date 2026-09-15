@@ -1,0 +1,12 @@
+invoice_id,account_id,account_name,contact_email,region,industry,plan,billing_cycle,seats,currency,amount,discount_pct,status,payment_method,signup_date,invoice_date,churned,csat_score,support_tickets
+I1,A1,Alpha,billing@alpha.example,NA,Software,Starter,Monthly,10,USD,$490.00,0,Complete,Credit Card,2023-01-01,2024-01-15,No,2,0
+I1,A1,Alpha,billing@alpha.example,NA,Software,starter,monthly,10,USD,490,0,paid,credit_card,2023/01/01,2024/01/15,FALSE,2,0
+I2,A1,Alpha,billing@alpha.example,NA,Software,Starter,monthly,10,USD,490,0,paid,credit_card,2023-01-01,2024-02-15,No,2,0
+I3,A1,Alpha,billing@alpha.example,NA,Software,Starter,monthly,10,USD,-49,0,REFUND,credit_card,2023-01-01,2024-03-15,No,2,0
+I4,A2,Beta,billing@beta.example,EMEA,Software,Enterprise,monthly,1,USD,299,0,paid,ach,2023-01-01,2024-01-16,Yes,3,1
+I5,A3,Gamma,billing@gamma.example,EMEA,Software,Pro,monthly,2,USD,198,0,pending,ach,2023-01-01,2024-01-17,No,4,0
+I6,A4,Delta,billing@delta.example,NA,Software,Starter,monthly,1,USD,49,0,failed,ach,2023-01-01,2024-01-18,No,4,0
+I7,A5,Epsilon,,APAC,,Starter,monthly,1,EUR,100 EUR,0,paid,,2023-01-01,2024-01-19,No,,0
+I8,A6,Zeta,billing@zeta.example,LATAM,Software,Starter,annual,3,USD,"1,323.00 USD",10,paid,wire,2023-01-01,2024-01-20,No,5,0
+I9,A7,Eta,billing@eta.example,NA,Software,Starter,monthly,10,USD,490,0,paid,ach,2023-01-01,2024-01-21,No,4,0
+I9,A7,Eta,billing@eta.example,NA,Software,Starter,monthly,10,USD,490,0,void,ach,2023-01-01,2024-01-21,No,4,0

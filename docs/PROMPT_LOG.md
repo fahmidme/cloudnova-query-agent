@@ -22,4 +22,4 @@ This is a trimmed reconstruction of relevant user direction and assistant decisi
 7. **User provider choice (verbatim):** "OpenAI API with a configurable model"
    **Assistant decision:** Use the Responses API behind a small standard-library adapter. Keep offline ingestion/demo/evaluation independent of credentials. Require explicit model configuration and verify live behavior separately.
 
-Subsequent implementation milestones and verification will be appended when they actually occur.
+8. **Assistant implementation (summary, 12:26 UTC):** Built the pipeline from the committed specs, then ran 18 offline tests against independent fixture expectations. Used SQLite integer cents and Decimal conversion, preserved raw records locally, kept account modeling separate, and corrected connection cleanup to support atomic replacement across operating systems. CLI and live query work follow this milestone.
