@@ -1,0 +1,20 @@
+Ask or enter a command: What about EMEA?
+
+Answer
+EMEA’s average MRR is $99.00 per account, based on 2 modeled accounts as of March 15,
+2024. This includes churned accounts with zero MRR.
+AI explanation of the computed results below.
+
+Computed results
+Region | Average MRR USD | Account Count
+-------+-----------------+--------------
+EMEA   | $99.00          | 2            
+
+SQL used
+  SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS 
+    account_count FROM accounts WHERE region = 'EMEA' GROUP BY region
+
+As of 2024-03-15 · 6 modeled accounts · 8 accepted invoices · 1 excluded invoice group.
+/quality for full caveats.
+
+Use /quality for exclusions, /clear for a fresh conversation.

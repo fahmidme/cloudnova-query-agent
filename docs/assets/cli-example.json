@@ -1,0 +1,18 @@
+{
+  "source": "Recorded GPT-5.6 Luna smoke check, original synthetic fixture, 2026-09-15. Prior question asked for the region with the highest average MRR per account.",
+  "question": "What about EMEA?",
+  "answer": "EMEA’s average MRR is $99.00 per account, based on 2 modeled accounts as of March 15, 2024. This includes churned accounts with zero MRR.",
+  "sql": "SELECT region, AVG(mrr_usd_cents) / 100.0 AS average_mrr_usd, COUNT(*) AS account_count FROM accounts WHERE region = 'EMEA' GROUP BY region",
+  "columns": [
+    "region",
+    "average_mrr_usd",
+    "account_count"
+  ],
+  "rows": [
+    [
+      "EMEA",
+      99.0,
+      2
+    ]
+  ]
+}
